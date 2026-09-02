@@ -14,6 +14,7 @@ Provider: NYC Open Data / NYC 311
 Dataset: 311 Service Requests from 2020 to Present
 
 Selected period: January 2025
+Extraction date: 2 September 2026
 
 Acquisition method: Downloaded manually as CSV from NYC Open Data after filtering the Created Date to January 2025
 
