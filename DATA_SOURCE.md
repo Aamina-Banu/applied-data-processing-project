@@ -19,3 +19,7 @@ Extraction date: 2 September 2026
 Acquisition method: Downloaded manually as CSV from NYC Open Data after filtering the Created Date to January 2025
 
 Raw data modified: No
+
+Reuse terms: NYC Open Data — public data available for use without restriction or licensing requirements 
+
+Official reference: https://opendata.cityofnewyork.us/faq/
