@@ -2,19 +2,19 @@
 
 ## File Integrity
 
-Raw file: T_ONTIME_MARKETING_20260831_061700.zip
+Raw file: nyc_311_january_2025.zip
 
 SHA-256:
-866773ABEFC12AC6B2D799215C6B272915646A8576A0CC24583754985187216D
+66EB5D89668990C6F86AAF49C71DB026D1452CD974884A952529299240503866
 
 ## Source
 
-Provider: U.S. Department of Transportation, Bureau of Transportation Statistics (BTS)
+Provider: NYC Open Data / NYC 311
 
-Dataset: Marketing Carrier On-Time Performance (Beginning January 2018)
+Dataset: 311 Service Requests from 2020 to Present
 
 Selected period: January 2025
 
-Acquisition method: Downloaded manually from the BTS TranStats website
+Acquisition method: Downloaded manually as CSV from NYC Open Data after filtering the Created Date to January 2025
 
 Raw data modified: No
