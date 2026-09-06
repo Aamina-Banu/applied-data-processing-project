@@ -15,6 +15,8 @@ Dataset: 311 Service Requests from 2020 to Present
 
 Selected period: January 2025
 Extraction date: 2 September 2026
+Dataset identifier: erm2-nwe9
+Filter applied: Created Date between 1 January 2025 and 31 January 2025
 
 Acquisition method: Downloaded manually as CSV from NYC Open Data after filtering the Created Date to January 2025
 
