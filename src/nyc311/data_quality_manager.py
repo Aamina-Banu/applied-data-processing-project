@@ -1,3 +1,5 @@
+import json
+
 import pandas as pd
 from pandas import DataFrame
 from datetime import datetime
@@ -55,7 +57,7 @@ class DataQualityManager(NYC311DataProcessor):
             "BBL",
             "Incident Zip",
             "Created Date",
-            "Closed Date"
+            "Closed Date",
         ]
 
         missing_columns = [
@@ -71,12 +73,12 @@ class DataQualityManager(NYC311DataProcessor):
 
         created_date = pd.to_datetime(
             dataset["Created Date"],
-            errors="coerce"
+            errors="coerce",
         )
 
         closed_date = pd.to_datetime(
             dataset["Closed Date"],
-            errors="coerce"
+            errors="coerce",
         )
 
         invalid_bbl_count = (
@@ -103,7 +105,7 @@ class DataQualityManager(NYC311DataProcessor):
             "Ã",
             "Â",
             "â",
-            "ð"
+            "ð",
         ]
 
         for column in text_columns:
@@ -119,12 +121,12 @@ class DataQualityManager(NYC311DataProcessor):
             "encoding_issue_count": encoding_issue_count,
             "invalid_bbl_count": invalid_bbl_count,
             "invalid_zip_count": invalid_zip_count,
-            "invalid_resolution_date_count": invalid_date_count
+            "invalid_resolution_date_count": invalid_date_count,
         }
 
     def correct_encoding(
         self,
-        data: DataFrame
+        data: DataFrame,
     ) -> DataFrame:
         """
         Correct confidently identifiable encoding issues.
@@ -166,7 +168,7 @@ class DataQualityManager(NYC311DataProcessor):
             "Ã",
             "Â",
             "â",
-            "ð"
+            "ð",
         ]
 
         affected_rows = set()
@@ -194,14 +196,14 @@ class DataQualityManager(NYC311DataProcessor):
                     if corrected_value != value:
                         result.at[
                             index,
-                            column
+                            column,
                         ] = corrected_value
 
                         affected_rows.add(index)
 
                 except (
                     UnicodeEncodeError,
-                    UnicodeDecodeError
+                    UnicodeDecodeError,
                 ):
                     continue
 
@@ -214,14 +216,15 @@ class DataQualityManager(NYC311DataProcessor):
                 "mojibake values using a consistent "
                 "encoding conversion."
             ),
-            "timestamp": datetime.now().isoformat()
+            "outcome": "success",
+            "timestamp": datetime.now().isoformat(),
         })
 
         return result
 
     def replace_invalid_bbl(
         self,
-        data: DataFrame
+        data: DataFrame,
     ) -> DataFrame:
         """
         Replace invalid BBL values of 0 with missing values.
@@ -246,6 +249,8 @@ class DataQualityManager(NYC311DataProcessor):
             If data is not a pandas DataFrame.
         ValueError
             If the BBL column is missing.
+        NYC311DataQualityError
+            If the treatment fails a post-treatment integrity check.
         """
         if not isinstance(data, DataFrame):
             raise TypeError(
@@ -259,34 +264,69 @@ class DataQualityManager(NYC311DataProcessor):
 
         result = data.copy()
 
+        original_row_count = len(data)
+        outcome = "failed"
+        failure_message = None
+
         invalid_bbl = result["BBL"] == 0
 
         affected_count = int(
             invalid_bbl.sum()
         )
 
-        result.loc[
-            invalid_bbl,
-            "BBL"
-        ] = pd.NA
+        try:
+            result.loc[
+                invalid_bbl,
+                "BBL",
+            ] = pd.NA
 
-        self.__change_log.append({
-            "treatment": "replace_invalid_bbl",
-            "fields": ["BBL"],
-            "rows_affected": affected_count,
-            "description": (
-                "Replaced BBL values equal to 0 "
-                "with missing values because a valid "
-                "BBL could not be safely inferred."
-            ),
-            "timestamp": datetime.now().isoformat()
-        })
+            if len(result) != original_row_count:
+                raise NYC311DataQualityError(
+                    "BBL treatment changed the number "
+                    "of rows in the dataset."
+                )
+
+            if "BBL" not in result.columns:
+                raise NYC311DataQualityError(
+                    "BBL treatment removed the required "
+                    "'BBL' column."
+                )
+
+            if (result["BBL"] == 0).any():
+                raise NYC311DataQualityError(
+                    "BBL treatment did not remove all "
+                    "invalid BBL values."
+                )
+
+        except NYC311DataQualityError as error:
+            outcome = "failed"
+            failure_message = str(error)
+            raise
+
+        else:
+            outcome = "success"
+
+        finally:
+            self.__change_log.append({
+                "treatment": "replace_invalid_bbl",
+                "fields": ["BBL"],
+                "rows_affected": affected_count,
+                "description": (
+                    "Replaced BBL values equal to 0 "
+                    "with missing values because a valid "
+                    "BBL could not be safely inferred."
+                    if outcome == "success"
+                    else failure_message
+                ),
+                "outcome": outcome,
+                "timestamp": datetime.now().isoformat(),
+            })
 
         return result
 
     def handle_invalid_zip(
         self,
-        data: DataFrame
+        data: DataFrame,
     ) -> DataFrame:
         """
         Replace the clearly invalid ZIP value 83 with a missing value.
@@ -311,6 +351,8 @@ class DataQualityManager(NYC311DataProcessor):
             If data is not a pandas DataFrame.
         ValueError
             If the Incident Zip column is missing.
+        NYC311DataQualityError
+            If the treatment fails a post-treatment integrity check.
         """
         if not isinstance(data, DataFrame):
             raise TypeError(
@@ -324,6 +366,10 @@ class DataQualityManager(NYC311DataProcessor):
 
         result = data.copy()
 
+        original_row_count = len(data)
+        outcome = "failed"
+        failure_message = None
+
         invalid_zip = (
             result["Incident Zip"] == 83
         )
@@ -332,29 +378,60 @@ class DataQualityManager(NYC311DataProcessor):
             invalid_zip.sum()
         )
 
-        result.loc[
-            invalid_zip,
-            "Incident Zip"
-        ] = pd.NA
+        try:
+            result.loc[
+                invalid_zip,
+                "Incident Zip",
+            ] = pd.NA
 
-        self.__change_log.append({
-            "treatment": "handle_invalid_zip",
-            "fields": ["Incident Zip"],
-            "rows_affected": affected_count,
-            "description": (
-                "Replaced the clearly invalid ZIP "
-                "value 83 with a missing value. "
-                "Other ambiguous ZIP representations "
-                "were left unchanged."
-            ),
-            "timestamp": datetime.now().isoformat()
-        })
+            if len(result) != original_row_count:
+                raise NYC311DataQualityError(
+                    "ZIP treatment changed the number "
+                    "of rows in the dataset."
+                )
+
+            if "Incident Zip" not in result.columns:
+                raise NYC311DataQualityError(
+                    "ZIP treatment removed the required "
+                    "'Incident Zip' column."
+                )
+
+            if (result["Incident Zip"] == 83).any():
+                raise NYC311DataQualityError(
+                    "ZIP treatment did not remove all "
+                    "clearly invalid ZIP values."
+                )
+
+        except NYC311DataQualityError as error:
+            outcome = "failed"
+            failure_message = str(error)
+            raise
+
+        else:
+            outcome = "success"
+
+        finally:
+            self.__change_log.append({
+                "treatment": "handle_invalid_zip",
+                "fields": ["Incident Zip"],
+                "rows_affected": affected_count,
+                "description": (
+                    "Replaced the clearly invalid ZIP "
+                    "value 83 with a missing value. "
+                    "Other ambiguous ZIP representations "
+                    "were left unchanged."
+                    if outcome == "success"
+                    else failure_message
+                ),
+                "outcome": outcome,
+                "timestamp": datetime.now().isoformat(),
+            })
 
         return result
 
     def handle_date_inconsistencies(
         self,
-        data: DataFrame
+        data: DataFrame,
     ) -> DataFrame:
         """
         Handle records where Closed Date occurs before Created Date.
@@ -382,6 +459,9 @@ class DataQualityManager(NYC311DataProcessor):
             If data is not a pandas DataFrame.
         ValueError
             If Created Date or Closed Date is missing.
+        NYC311DataQualityError
+            If the treatment fails one of the post-treatment
+            integrity checks.
         """
         if not isinstance(data, DataFrame):
             raise TypeError(
@@ -390,7 +470,7 @@ class DataQualityManager(NYC311DataProcessor):
 
         required_columns = [
             "Created Date",
-            "Closed Date"
+            "Closed Date",
         ]
 
         missing_columns = [
@@ -407,14 +487,19 @@ class DataQualityManager(NYC311DataProcessor):
 
         result = data.copy()
 
+        original_row_count = len(data)
+
+        outcome = "failed"
+        failure_message = None
+
         created_date = pd.to_datetime(
             result["Created Date"],
-            errors="coerce"
+            errors="coerce",
         )
 
         closed_date = pd.to_datetime(
             result["Closed Date"],
-            errors="coerce"
+            errors="coerce",
         )
 
         invalid_dates = (
@@ -427,29 +512,121 @@ class DataQualityManager(NYC311DataProcessor):
             invalid_dates.sum()
         )
 
-        result.loc[
-            invalid_dates,
-            "Closed Date"
-        ] = pd.NaT
+        try:
+            result.loc[
+                invalid_dates,
+                "Closed Date",
+            ] = pd.NaT
 
-        self.__change_log.append({
-            "treatment": (
-                "handle_date_inconsistencies"
-            ),
-            "fields": [
-                "Created Date",
-                "Closed Date"
-            ],
-            "rows_affected": affected_count,
-            "description": (
-                "Replaced Closed Date with a missing "
-                "value when it occurred before Created "
-                "Date. No replacement date was invented."
-            ),
-            "timestamp": datetime.now().isoformat()
-        })
+            if len(result) != original_row_count:
+                raise NYC311DataQualityError(
+                    "Date treatment changed the number "
+                    "of rows in the dataset."
+                )
+
+            if (
+                "Created Date" not in result.columns
+                or "Closed Date" not in result.columns
+            ):
+                raise NYC311DataQualityError(
+                    "Date treatment removed a required "
+                    "date column."
+                )
+
+            treated_created_date = pd.to_datetime(
+                result["Created Date"],
+                errors="coerce",
+            )
+
+            treated_closed_date = pd.to_datetime(
+                result["Closed Date"],
+                errors="coerce",
+            )
+
+            remaining_invalid_dates = (
+                treated_created_date.notna()
+                & treated_closed_date.notna()
+                & (
+                    treated_closed_date
+                    < treated_created_date
+                )
+            )
+
+            if remaining_invalid_dates.any():
+                raise NYC311DataQualityError(
+                    "Date treatment did not remove all "
+                    "invalid date inconsistencies."
+                )
+
+        except NYC311DataQualityError as error:
+            outcome = "failed"
+            failure_message = str(error)
+            raise
+
+        else:
+            outcome = "success"
+
+        finally:
+            self.__change_log.append({
+                "treatment": (
+                    "handle_date_inconsistencies"
+                ),
+                "fields": [
+                    "Created Date",
+                    "Closed Date",
+                ],
+                "rows_affected": affected_count,
+                "description": (
+                    "Replaced Closed Date with a missing "
+                    "value when it occurred before Created "
+                    "Date. No replacement date was invented."
+                    if outcome == "success"
+                    else failure_message
+                ),
+                "outcome": outcome,
+                "timestamp": datetime.now().isoformat(),
+            })
 
         return result
+
+    def save_change_log(
+        self,
+        file_path: str,
+    ) -> None:
+        """
+        Save the data quality change log to a JSON file.
+
+        Parameters
+        ----------
+        file_path : str
+            The path where the JSON change log should be saved.
+
+        Raises
+        ------
+        TypeError
+            If file_path is not a string.
+        OSError
+            If the change log cannot be written to the specified file.
+        """
+        if not isinstance(file_path, str):
+            raise TypeError(
+                "File path must be a string."
+            )
+
+        try:
+            with open(
+                file_path,
+                "w",
+                encoding="utf-8",
+            ) as file:
+                json.dump(
+                    self.__change_log,
+                    file,
+                    indent=4,
+                )
+
+        except OSError:
+            raise
 
     def get_change_log(self) -> list:
         """

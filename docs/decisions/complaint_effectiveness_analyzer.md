@@ -237,8 +237,6 @@ A denominator of zero means there is not enough consistently classified data to 
 
 This does not necessarily mean that the entire dataset is invalid, so the whole processing operation should not fail.
 
-ValueError is reserved for genuinely invalid input conditions when input validation is implemented later.
-
 Status:
 Active.
 
@@ -360,7 +358,28 @@ Active.
 
 ---
 
-## 19. Current process_data() Output
+## 19. Validate Required Columns
+
+Decision:
+Before performing complaint-effectiveness analysis, process_data() checks that the following required columns are present:
+
+- Status
+- Created Date
+- Closed Date
+
+If one or more of these columns are missing, a ValueError is raised identifying the missing columns.
+
+Why:
+The analyzer directly depends on these fields.
+
+Checking them before beginning the analysis provides a clear and informative failure instead of allowing a less understandable pandas error to occur later.
+
+Status:
+Active.
+
+---
+
+## 20. Current process_data() Output
 
 The current implementation returns:
 
@@ -389,7 +408,7 @@ Active.
 
 ---
 
-## 20. Unit Test Design
+## 21. Unit Test Design
 
 Decision:
 A small synthetic DataFrame is used to test multiple complaint situations.
@@ -411,7 +430,7 @@ Active.
 
 ---
 
-## 21. Closure Rate Test
+## 22. Closure Rate Test
 
 Decision:
 The unit test also checks the calculated closure rate.
@@ -431,12 +450,27 @@ Active.
 
 ---
 
+## 23. Missing Required Column Test
+
+Decision:
+A separate unit test supplies a DataFrame that is missing the Closed Date column and verifies that process_data() raises ValueError.
+
+Why:
+This verifies that the analyzer rejects incomplete input through its own validation rather than failing later during processing.
+
+Status:
+Active.
+
+---
+
 ## Current Implementation Status
 
 ComplaintEffectivenessAnalyzer currently:
 
 - inherits from NYC311DataProcessor;
 - uses controlled dataset access;
+- validates that Status, Created Date, and Closed Date are present;
+- raises ValueError when a required column is missing;
 - reports complaint volume and Status distribution;
 - distinguishes valid closed and valid non-closed records;
 - identifies Status/Closed Date conflicts;
@@ -449,25 +483,21 @@ ComplaintEffectivenessAnalyzer currently:
 - reports invalid resolution-date counts; and
 - does not modify the source data.
 
-The current implementation has been executed using a small test DataFrame.
+The ComplaintEffectivenessAnalyzer implementation has been executed and verified through its unit tests, including the required-column validation test.
 
-The ComplaintEffectivenessAnalyzer unit test passed successfully, and the complete test suite currently reports:
+The current overall project test suite reports:
 
-2 passed.
+11 passed.
 
 ---
 
 ## Future Work
 
-Input validation still needs to be implemented later.
+The core ComplaintEffectivenessAnalyzer behavior and its current input validation are implemented and covered by the existing tests.
 
-Important required fields for this analyzer include:
+Remaining Task 1 exception-handling work is being handled at the wider package/data-quality-management level, including the required custom domain exception and appropriate try/except/else/finally structure.
 
-- Status
-- Created Date
-- Closed Date
-
-Additional tests will also be added as the Task 1 testing requirements are completed.
+Final package-level and end-to-end verification will be completed before Task 1 is considered finished.
 
 If an important design decision changes later, keep a record of:
 

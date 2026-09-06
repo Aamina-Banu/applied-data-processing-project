@@ -1,5 +1,6 @@
 import pandas as pd
 from pandas import DataFrame
+
 from .data_processor import NYC311DataProcessor
 
 
@@ -55,24 +56,69 @@ class ComplaintEffectivenessAnalyzer(NYC311DataProcessor):
         dict
             A dictionary containing complaint counts, closure
             statistics, anomaly counts, and resolution-time metrics.
+
+        Raises
+        ------
+        ValueError
+            If Status, Created Date, or Closed Date is missing.
         """
         dataset = self.get_dataset()
 
+        required_columns = [
+            "Status",
+            "Created Date",
+            "Closed Date"
+        ]
+
+        missing_columns = [
+            column
+            for column in required_columns
+            if column not in dataset.columns
+        ]
+
+        if missing_columns:
+            raise ValueError(
+                f"Required columns are missing: {missing_columns}"
+            )
+
         total_complaints = len(dataset)
-        status_counts = dataset["Status"].value_counts().to_dict()
 
-        closed_status = dataset["Status"] == "Closed"
-
-        non_closed_status = dataset["Status"].isin(
-            ["Open", "In Progress", "Assigned", "Pending", "Started"]
+        status_counts = (
+            dataset["Status"]
+            .value_counts()
+            .to_dict()
         )
 
-        unspecified_status = dataset["Status"] == "Unspecified"
+        closed_status = (
+            dataset["Status"] == "Closed"
+        )
 
-        closed_date_present = dataset["Closed Date"].notna()
-        closed_date_missing = dataset["Closed Date"].isna()
+        non_closed_status = dataset["Status"].isin(
+            [
+                "Open",
+                "In Progress",
+                "Assigned",
+                "Pending",
+                "Started"
+            ]
+        )
 
-        valid_closed = closed_status & closed_date_present
+        unspecified_status = (
+            dataset["Status"] == "Unspecified"
+        )
+
+        closed_date_present = (
+            dataset["Closed Date"].notna()
+        )
+
+        closed_date_missing = (
+            dataset["Closed Date"].isna()
+        )
+
+        valid_closed = (
+            closed_status
+            & closed_date_present
+        )
 
         valid_non_closed = (
             non_closed_status
@@ -112,7 +158,9 @@ class ComplaintEffectivenessAnalyzer(NYC311DataProcessor):
             errors="coerce"
         )
 
-        created_date_present = created_date.notna()
+        created_date_present = (
+            created_date.notna()
+        )
 
         valid_resolution_records = (
             valid_closed
@@ -125,7 +173,6 @@ class ComplaintEffectivenessAnalyzer(NYC311DataProcessor):
         )
 
         if resolution_record_count > 0:
-
             resolution_time = (
                 closed_date[valid_resolution_records]
                 - created_date[valid_resolution_records]
@@ -143,7 +190,6 @@ class ComplaintEffectivenessAnalyzer(NYC311DataProcessor):
             median_resolution_hours = (
                 resolution_hours.median()
             )
-
         else:
             average_resolution_hours = None
             median_resolution_hours = None
@@ -165,11 +211,25 @@ class ComplaintEffectivenessAnalyzer(NYC311DataProcessor):
             "valid_closed_count": valid_closed.sum(),
             "valid_non_closed_count": valid_non_closed.sum(),
             "closure_rate": closure_rate,
-            "closed_missing_date_count": closed_missing_date.sum(),
-            "non_closed_present_date_count": non_closed_present_date.sum(),
-            "unspecified_count": unspecified_status.sum(),
-            "resolution_record_count": resolution_record_count,
-            "average_resolution_hours": average_resolution_hours,
-            "median_resolution_hours": median_resolution_hours,
-            "invalid_resolution_date_count": invalid_resolution_date_count
+            "closed_missing_date_count": (
+                closed_missing_date.sum()
+            ),
+            "non_closed_present_date_count": (
+                non_closed_present_date.sum()
+            ),
+            "unspecified_count": (
+                unspecified_status.sum()
+            ),
+            "resolution_record_count": (
+                resolution_record_count
+            ),
+            "average_resolution_hours": (
+                average_resolution_hours
+            ),
+            "median_resolution_hours": (
+                median_resolution_hours
+            ),
+            "invalid_resolution_date_count": (
+                invalid_resolution_date_count
+            )
         }

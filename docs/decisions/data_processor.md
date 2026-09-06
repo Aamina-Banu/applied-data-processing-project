@@ -163,7 +163,7 @@ The problem in this situation is the type of object supplied rather than the val
 
 For example, passing a string or list where a DataFrame is required is a type error.
 
-ValueError will be used later where an input has the expected general type but contains an unacceptable value or condition.
+ValueError is used where an input has the expected general type but is missing required information, such as required DataFrame columns.
 
 Status:
 Active.
@@ -239,17 +239,25 @@ NYC311DataProcessor currently:
 - defines process_data() as an abstract method; and
 - establishes dict as the common process_data() return contract.
 
-The parent class is currently being used successfully by DataInspector and ComplaintEffectivenessAnalyzer.
+The parent class is currently being used by all three implemented subclasses:
 
-Both implemented subclasses have been exercised through unit tests, and the current test suite reports:
+- DataInspector;
+- ComplaintEffectivenessAnalyzer; and
+- DataQualityManager.
 
-2 passed.
+All three subclasses are currently exercised through the project's unit test suite.
+
+The current test suite reports:
+
+11 passed.
 
 ---
 
 ## Future Work
 
-Additional input validation and exception tests will be completed as Task 1 progresses.
+The remaining Task 1 work includes completing the required exception-handling features, including appropriate use of the custom domain exception and the required try/except/else/finally structure.
+
+Final package-level verification and end-to-end Task 1 checks will also be completed before Task 1 is marked as finished.
 
 If an important parent-class design decision changes later, record:
 

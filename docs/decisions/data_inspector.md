@@ -104,7 +104,7 @@ DataInspector answers:
 
 "What does the dataset look like?"
 
-DataQualityManager will later answer:
+DataQualityManager answers:
 
 "What data-quality problems exist and what should be done about them?"
 
@@ -183,6 +183,7 @@ Active.
 ## Current Responsibility Boundary
 
 DataInspector:
+
 - describes dataset structure;
 - reports basic information;
 - reports missing-value counts;
@@ -191,10 +192,11 @@ DataInspector:
 - does not perform cleaning.
 
 DataQualityManager:
+
 - identifies actual data-quality problems;
-- determines which problems require treatment;
-- applies justified treatments;
-- records changes.
+- determines which identified problems have justified treatments;
+- applies the implemented treatments;
+- records changes in its change log.
 
 This boundary should be maintained as the project develops.
 
@@ -212,7 +214,11 @@ DataInspector currently:
 - returns a dictionary containing structural information; and
 - performs no data modification.
 
-The implementation has been reviewed structurally but still needs to be executed and tested before it should be considered fully verified.
+The DataInspector implementation has been executed and verified through its unit test.
+
+The current overall project test suite reports:
+
+11 passed.
 
 ---
 
@@ -229,5 +235,3 @@ Record:
 - any new trade-off introduced.
 
 This will preserve the development history for later review and viva preparation.
-
-The current implementation has been executed using a small test DataFrame and the DataInspector unit test passed successfully.

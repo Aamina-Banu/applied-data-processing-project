@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 
 from nyc311.complaint_effectiveness_analyzer import (
     ComplaintEffectivenessAnalyzer
@@ -48,3 +49,15 @@ def test_complaint_effectiveness_analyzer():
     assert result["average_resolution_hours"] == 4.0
     assert result["median_resolution_hours"] == 4.0
     assert result["invalid_resolution_date_count"] == 1
+
+
+def test_complaint_effectiveness_missing_required_column():
+    data = pd.DataFrame({
+        "Status": ["Closed"],
+        "Created Date": ["2025-01-01 10:00:00"]
+    })
+
+    analyzer = ComplaintEffectivenessAnalyzer(data)
+
+    with pytest.raises(ValueError):
+        analyzer.process_data()
