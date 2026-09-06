@@ -6,7 +6,7 @@ DataQualityManager is responsible for identifying confirmed data-quality problem
 
 The class is separate from DataInspector because DataInspector only describes the structure and basic characteristics of the dataset, while DataQualityManager judges whether certain values are problematic and applies treatments when appropriate.
 
-1. Inherit from NYC311DataProcessor
+Inherit from NYC311DataProcessor
 
 Decision:
 DataQualityManager inherits from NYC311DataProcessor.
@@ -19,7 +19,7 @@ The parent handles dataset validation and storage, so this logic does not need t
 Status:
 Active.
 
-2. Use a Private Change Log
+Use a Private Change Log
 
 Decision:
 The class stores treatment history in:
@@ -34,7 +34,7 @@ The change log provides evidence of what treatment was performed, which fields w
 Status:
 Active.
 
-3. Return a Copy of the Change Log
+Return a Copy of the Change Log
 
 Decision:
 get_change_log() returns a copy of __change_log rather than the original list.
@@ -47,7 +47,26 @@ Returning a copy supports encapsulation and follows the same principle used by N
 Status:
 Active.
 
-4. Separate Quality Reporting from Treatment
+Save the Change Log to a Persistent JSON File
+
+Decision:
+The private __change_log remains the in-memory treatment history during processing, but save_change_log(file_path: str) provides an explicit way to save the current log to a JSON file.
+
+Saving is performed manually rather than automatically after every treatment.
+
+Why:
+Keeping the working log in memory allows treatment methods to record their activity without performing file operations every time a treatment runs.
+
+However, an in-memory log is lost when the program ends. Saving the completed log to JSON provides persistent evidence of the treatments that were performed and their outcomes.
+
+JSON was selected because the change log is already structured as a list of dictionaries and can be stored in a readable and reproducible format.
+
+The save operation does not clear or modify the private in-memory change log.
+
+Status:
+Active.
+
+Separate Quality Reporting from Treatment
 
 Decision:
 process_data() reports identified data-quality issues but does not automatically call every cleaning method.
@@ -60,7 +79,7 @@ This class therefore keeps assessment and treatment as separate operations.
 Status:
 Active.
 
-5. Validate Required Columns
+Validate Required Columns
 
 Decision:
 process_data() checks for the columns required for the current quality checks:
@@ -83,7 +102,7 @@ A ValueError is therefore raised for missing required columns.
 Status:
 Active.
 
-6. Use TypeError for Non-DataFrame Input
+Use TypeError for Non-DataFrame Input
 
 Decision:
 Treatment methods raise TypeError when the supplied data argument is not a pandas DataFrame.
@@ -96,7 +115,7 @@ This is consistent with the validation already used by NYC311DataProcessor.
 Status:
 Active.
 
-7. Use ValueError for Missing Required Fields
+Use ValueError for Missing Required Fields
 
 Decision:
 Treatment methods raise ValueError when the supplied DataFrame does not contain the field required by that treatment.
@@ -115,7 +134,7 @@ The input is still a valid DataFrame, but it does not contain the values require
 Status:
 Active.
 
-8. Return New DataFrames Instead of Modifying in Place
+Return New DataFrames Instead of Modifying in Place
 
 Decision:
 Each treatment method creates and returns a copy of the supplied DataFrame.
@@ -128,7 +147,7 @@ This also makes treatment chaining clearer and protects the input dataset from u
 Status:
 Active.
 
-9. BBL Value 0 Is Treated as Invalid
+BBL Value 0 Is Treated as Invalid
 
 Decision:
 BBL values equal to 0 are replaced with a missing value.
@@ -141,7 +160,7 @@ A valid BBL cannot be safely inferred from this value, so the treatment marks it
 Status:
 Active.
 
-10. Incident Zip Value 83 Is Treated as Invalid
+Incident Zip Value 83 Is Treated as Invalid
 
 Decision:
 Incident Zip value 83 is replaced with a missing value.
@@ -154,7 +173,7 @@ The correct ZIP cannot be safely inferred, so the value is marked as missing rat
 Status:
 Active.
 
-11. ZIP Values 7105 and 7307 Are Left Unchanged
+ZIP Values 7105 and 7307 Are Left Unchanged
 
 Decision:
 The values 7105 and 7307 are not automatically modified.
@@ -167,7 +186,7 @@ They are therefore treated as ambiguous rather than clearly invalid.
 Status:
 Active.
 
-12. Negative Date Differences Are Treated Explicitly
+Negative Date Differences Are Treated Explicitly
 
 Decision:
 Where Closed Date occurs before Created Date, Closed Date is replaced with a missing value.
@@ -182,7 +201,7 @@ The row itself is preserved.
 Status:
 Active.
 
-13. Do Not Automatically Correct Status and Closed Date Conflicts
+Do Not Automatically Correct Status and Closed Date Conflicts
 
 Decision:
 Records where:
@@ -201,7 +220,7 @@ They are therefore reported by the complaint analyzer rather than silently corre
 Status:
 Active.
 
-14. Do Not Automatically Treat Resolution Action Updated Date Issues
+Do Not Automatically Treat Resolution Action Updated Date Issues
 
 Decision:
 Records where Resolution Action Updated Date occurs before Created Date are not automatically modified.
@@ -214,7 +233,7 @@ Without stronger evidence, changing them could remove valid source information.
 Status:
 Active.
 
-15. Encoding Problems Are Detected Using Known Mojibake Markers
+Encoding Problems Are Detected Using Known Mojibake Markers
 
 Decision:
 The current quality-reporting logic looks for characters commonly associated with mojibake, including:
@@ -235,7 +254,7 @@ These markers provide a reproducible way of identifying likely affected values.
 Status:
 Active.
 
-16. Encoding Correction Uses a Reproducible Conversion Rule
+Encoding Correction Uses a Reproducible Conversion Rule
 
 Decision:
 correct_encoding() attempts a Latin-1 to UTF-8 conversion only for text values containing the selected encoding markers.
@@ -250,7 +269,7 @@ If the conversion cannot be performed safely, the value is left unchanged.
 Status:
 Active.
 
-17. Count Unique Affected Rows for Encoding Treatments
+Count Unique Affected Rows for Encoding Treatments
 
 Decision:
 correct_encoding() stores affected row indexes in a set and records the number of unique affected rows.
@@ -265,7 +284,7 @@ Using a set ensures each affected row is counted once.
 Status:
 Active.
 
-18. Use a Consistent Change-Log Structure
+Use a Consistent Change-Log Structure
 
 Decision:
 Treatment methods add a dictionary to __change_log containing:
@@ -294,7 +313,7 @@ Recording the outcome also makes failed treatment attempts traceable rather than
 Status:
 Active.
 
-19. Preserve Ambiguous Values Rather Than Guess
+Preserve Ambiguous Values Rather Than Guess
 
 Decision:
 Where the correct replacement cannot be confidently determined, the implementation either leaves the value unchanged or marks a clearly invalid value as missing.
@@ -307,7 +326,7 @@ This helps avoid introducing unsupported corrections into the dataset.
 Status:
 Active.
 
-20. Use NYC311DataQualityError for Post-Treatment Integrity Failures
+Use NYC311DataQualityError for Post-Treatment Integrity Failures
 
 Decision:
 NYC311DataQualityError is used when a treatment passes the initial input checks but fails a post-treatment integrity check.
@@ -336,7 +355,7 @@ the invalid values remaining after the treatment should have removed them.
 Status:
 Active.
 
-21. Post-Treatment Integrity Checks
+Post-Treatment Integrity Checks
 
 Decision:
 BBL, ZIP, and date treatment methods perform defensive integrity checks after applying their treatment rule.
@@ -373,7 +392,7 @@ If a check fails, NYC311DataQualityError is raised.
 Status:
 Active.
 
-22. Use try/except/else/finally for Treatment Failure Safety
+Use try/except/else/finally for Treatment Failure Safety
 
 Decision:
 BBL, ZIP, and date treatment methods use try/except/else/finally around the treatment and post-treatment verification.
@@ -394,7 +413,7 @@ This means failed treatment attempts are still traceable.
 Status:
 Active.
 
-23. Encoding Uses Tolerant Per-Value Exception Handling
+Encoding Uses Tolerant Per-Value Exception Handling
 
 Decision:
 correct_encoding() uses try/except around individual Latin-1 to UTF-8 conversion attempts.
@@ -411,7 +430,7 @@ This behavior is intentionally different from the whole-treatment post-condition
 Status:
 Active.
 
-24. Unit Testing Strategy
+Unit Testing Strategy
 
 Decision:
 DataQualityManager is tested using small synthetic DataFrames.
@@ -442,7 +461,9 @@ NYC311DataQualityError when the date treatment fails its post-treatment check;
 
 NYC311DataQualityError when the BBL treatment fails its post-treatment check; and
 
-NYC311DataQualityError when the ZIP treatment fails its post-treatment check.
+NYC311DataQualityError when the ZIP treatment fails its post-treatment check; and
+
+saving the change log to JSON and reading it back to verify the persisted contents.
 
 Why:
 Small controlled DataFrames make it easier to verify specific behavior without depending on the full dataset.
@@ -452,11 +473,11 @@ The failure-path tests deliberately simulate treatment failure so that defensive
 Status:
 Active.
 
-25. Current Test Status
+Current Test Status
 
 The complete project test suite currently reports:
 
-14 passed
+15 passed
 
 This includes the DataInspector, ComplaintEffectivenessAnalyzer, and DataQualityManager tests.
 
@@ -484,6 +505,8 @@ inherits from NYC311DataProcessor;
 keeps a private change log;
 
 returns a copy of the change log;
+
+provides save_change_log() to persist the in-memory treatment history as a JSON file;
 
 reports confirmed quality issues;
 
@@ -517,9 +540,9 @@ keeps encoding conversion tolerant of individual Unicode conversion failures.
 
 The current complete project test suite reports:
 
-14 passed
+15 passed
 
-The exception-handling implementation is now present and verified through the current synthetic unit-test suite.
+The exception-handling and JSON persistence behavior are now present and verified through the current synthetic unit-test suite.
 
 This does not yet mean the complete Task 1 is finished because final verification against the full January 2025 dataset and the remaining Task 1 project-level checks are still pending.
 
