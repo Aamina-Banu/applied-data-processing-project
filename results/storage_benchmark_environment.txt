@@ -1,0 +1,12 @@
+Python version: 3.14.0
+Pandas version: 3.0.5
+PyArrow version: 25.0.1
+Matplotlib version: 3.11.1
+Operating system: Windows, 64-bit, build 26200
+Processor: 13th Gen Intel(R) Core(TM) i7-13620H
+RAM: 16 GB
+Warm-up runs: 1
+Measured runs: 5
+Dataset rows: 337551
+Dataset columns: 44
+One-column benchmark field: Problem (formerly Complaint Type)
