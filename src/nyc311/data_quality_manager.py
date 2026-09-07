@@ -1,4 +1,5 @@
 import json
+from copy import deepcopy
 
 import pandas as pd
 from pandas import DataFrame
@@ -638,12 +639,13 @@ class DataQualityManager(NYC311DataProcessor):
         """
         Return a copy of the data quality treatment history.
 
-        Returning a copy prevents external code from directly
+        Returning an independent copy prevents external code from
         modifying the private change log.
 
         Returns
         -------
         list
-            A copy of the recorded data quality treatment entries.
+            An independent copy of the recorded data quality
+            treatment entries.
         """
-        return self.__change_log.copy()
+        return deepcopy(self.__change_log)

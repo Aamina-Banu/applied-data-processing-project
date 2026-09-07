@@ -7,7 +7,7 @@
         "rows_affected": 89,
         "description": "Replaced BBL values equal to 0 with missing values because a valid BBL could not be safely inferred.",
         "outcome": "success",
-        "timestamp": "2026-09-07T15:45:33.648121"
+        "timestamp": "2026-09-07T16:06:08.042368"
     },
     {
         "treatment": "handle_invalid_zip",
@@ -17,7 +17,7 @@
         "rows_affected": 1,
         "description": "Replaced the clearly invalid ZIP value 83 with a missing value. Other ambiguous ZIP representations were left unchanged.",
         "outcome": "success",
-        "timestamp": "2026-09-07T15:45:33.710338"
+        "timestamp": "2026-09-07T16:06:08.117001"
     },
     {
         "treatment": "handle_date_inconsistencies",
@@ -28,7 +28,7 @@
         "rows_affected": 96,
         "description": "Replaced Closed Date with a missing value when it occurred before Created Date. No replacement date was invented.",
         "outcome": "success",
-        "timestamp": "2026-09-07T15:45:36.024694"
+        "timestamp": "2026-09-07T16:06:11.318220"
     },
     {
         "treatment": "correct_encoding",
@@ -75,6 +75,6 @@
         "rows_affected": 8594,
         "description": "Corrected confidently identifiable mojibake values using a consistent encoding conversion.",
         "outcome": "success",
-        "timestamp": "2026-09-07T15:47:12.620190"
+        "timestamp": "2026-09-07T16:07:51.552717"
     }
 ]

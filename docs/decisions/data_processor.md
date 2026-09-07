@@ -249,15 +249,13 @@ All three subclasses are currently exercised through the project's unit test sui
 
 The current test suite reports:
 
-15 passed.
+16 passed.
 
 ---
 
 ## Future Work
 
 The required custom exception handling and try/except/else/finally structure are implemented and covered by the current tests.
-
-Final package-level verification and end-to-end Task 1 checks will also be completed before Task 1 is marked as finished.
 
 If an important parent-class design decision changes later, record:
 

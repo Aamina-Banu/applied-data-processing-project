@@ -16,6 +16,7 @@ df = pd.read_csv(
     zip_path,
     compression="zip"
 )
+original_snapshot = df.copy(deep=True)
 
 print("\n--- DATASET LOADED ---")
 print("Rows:", len(df))
@@ -87,13 +88,20 @@ print(
 original_check = DataQualityManager(
     df
 ).process_data()
+original_dataframe_unchanged = df.equals(
+    original_snapshot
+)
 
 print("\n--- ORIGINAL DATAFRAME CHECK ---")
 print(original_check)
 
 print(
-    "Original still unchanged:",
+    "Original quality summaries unchanged:",
     original_check == before_results
+)
+print(
+    "Complete original DataFrame unchanged:",
+    original_dataframe_unchanged
 )
 
 
@@ -185,7 +193,7 @@ print(
 
 print(
     "Original DataFrame preserved:",
-    original_check == before_results
+    original_dataframe_unchanged
 )
 
 print(

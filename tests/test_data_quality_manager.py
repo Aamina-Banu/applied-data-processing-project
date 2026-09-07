@@ -86,6 +86,23 @@ def test_change_log_records_treatment():
     assert log[0]["outcome"] == "success"
 
 
+def test_change_log_entries_are_independent_copies():
+    data = pd.DataFrame({
+        "BBL": [0, 1234567890]
+    })
+
+    manager = DataQualityManager(data)
+
+    manager.replace_invalid_bbl(data)
+
+    log = manager.get_change_log()
+    log[0]["outcome"] = "mutated"
+
+    fresh_log = manager.get_change_log()
+
+    assert fresh_log[0]["outcome"] == "success"
+
+
 def test_missing_bbl_column_raises_value_error():
     data = pd.DataFrame({
         "Incident Zip": [10001, 10002]

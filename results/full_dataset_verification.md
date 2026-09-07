@@ -29,9 +29,7 @@ The number of rows remained unchanged at 337,551.
 
 ## Original Dataset Preservation
 
-The original loaded DataFrame was checked again after all treatments.
-
-Its quality counts remained identical to the pre-treatment results.
+The original loaded DataFrame matched the untouched deep snapshot using full DataFrame equality. Its quality counts also remained identical to the pre-treatment results.
 
 This confirms that the treatment methods returned new DataFrames rather than modifying the original DataFrame.
 
@@ -82,4 +80,4 @@ The following were verified:
 - successful treatment logging; and
 - JSON change-log persistence.
 
-A pandas date-parsing warning was observed during execution and should be reviewed separately during the final Task 1 code-quality check.
+No pandas date-parsing warning was observed during the latest verification run.
