@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 import nyc311.data_quality_manager as data_quality_module
 
-from nyc311.data_quality_manager import (
+from nyc311 import (
     DataQualityManager,
     NYC311DataQualityError,
 )
@@ -15,14 +15,14 @@ def test_process_data_reports_quality_issues():
         "BBL": [0, 1234567890, 0],
         "Incident Zip": [83, 10001, 10002],
         "Created Date": [
-            "2025-01-01 10:00:00",
-            "2025-01-02 10:00:00",
-            "2025-01-03 15:00:00"
+            "01/01/2025 10:00:00 AM",
+            "01/02/2025 10:00:00 AM",
+            "01/03/2025 03:00:00 PM"
         ],
         "Closed Date": [
-            "2025-01-01 12:00:00",
-            "2025-01-02 12:00:00",
-            "2025-01-03 10:00:00"
+            "01/01/2025 12:00:00 PM",
+            "01/02/2025 12:00:00 PM",
+            "01/03/2025 10:00:00 AM"
         ],
         "Description": [
             "Normal text",
@@ -126,12 +126,12 @@ def test_correct_encoding():
 def test_handle_date_inconsistencies():
     data = pd.DataFrame({
         "Created Date": [
-            "2025-01-01 10:00:00",
-            "2025-01-02 10:00:00"
+            "01/01/2025 10:00:00 AM",
+            "01/02/2025 10:00:00 AM"
         ],
         "Closed Date": [
-            "2025-01-01 09:00:00",
-            "2025-01-02 12:00:00"
+            "01/01/2025 09:00:00 AM",
+            "01/02/2025 12:00:00 PM"
         ]
     })
 
@@ -144,10 +144,10 @@ def test_handle_date_inconsistencies():
     assert pd.isna(result.loc[0, "Closed Date"])
 
     # Valid date should remain unchanged
-    assert result.loc[1, "Closed Date"] == "2025-01-02 12:00:00"
+    assert result.loc[1, "Closed Date"] == "01/02/2025 12:00:00 PM"
 
     # Original DataFrame must remain unchanged
-    assert data.loc[0, "Closed Date"] == "2025-01-01 09:00:00"
+    assert data.loc[0, "Closed Date"] == "01/01/2025 09:00:00 AM"
 
     log = manager.get_change_log()
 
@@ -173,10 +173,10 @@ def test_non_dataframe_raises_type_error():
 def test_handle_date_inconsistencies_failure(monkeypatch):
     data = pd.DataFrame({
         "Created Date": [
-            "2025-01-02 10:00:00"
+            "01/02/2025 10:00:00 AM"
         ],
         "Closed Date": [
-            "2025-01-01 10:00:00"
+            "01/01/2025 10:00:00 AM"
         ]
     })
 
@@ -186,7 +186,11 @@ def test_handle_date_inconsistencies_failure(monkeypatch):
 
     original_to_datetime = pd.to_datetime
 
-    def fake_to_datetime(values, errors="coerce"):
+    def fake_to_datetime(
+        values,
+        format=None,
+        errors="coerce"
+    ):
         nonlocal call_count
         call_count += 1
 
@@ -196,6 +200,7 @@ def test_handle_date_inconsistencies_failure(monkeypatch):
         if call_count <= 2:
             return original_to_datetime(
                 values,
+                format=format,
                 errors=errors
             )
 

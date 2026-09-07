@@ -1,0 +1,80 @@
+[
+    {
+        "treatment": "replace_invalid_bbl",
+        "fields": [
+            "BBL"
+        ],
+        "rows_affected": 89,
+        "description": "Replaced BBL values equal to 0 with missing values because a valid BBL could not be safely inferred.",
+        "outcome": "success",
+        "timestamp": "2026-09-07T15:45:33.648121"
+    },
+    {
+        "treatment": "handle_invalid_zip",
+        "fields": [
+            "Incident Zip"
+        ],
+        "rows_affected": 1,
+        "description": "Replaced the clearly invalid ZIP value 83 with a missing value. Other ambiguous ZIP representations were left unchanged.",
+        "outcome": "success",
+        "timestamp": "2026-09-07T15:45:33.710338"
+    },
+    {
+        "treatment": "handle_date_inconsistencies",
+        "fields": [
+            "Created Date",
+            "Closed Date"
+        ],
+        "rows_affected": 96,
+        "description": "Replaced Closed Date with a missing value when it occurred before Created Date. No replacement date was invented.",
+        "outcome": "success",
+        "timestamp": "2026-09-07T15:45:36.024694"
+    },
+    {
+        "treatment": "correct_encoding",
+        "fields": [
+            "Created Date",
+            "Closed Date",
+            "Agency",
+            "Agency Name",
+            "Problem (formerly Complaint Type)",
+            "Problem Detail (formerly Descriptor)",
+            "Additional Details",
+            "Location Type",
+            "Incident Address",
+            "Street Name",
+            "Cross Street 1",
+            "Cross Street 2",
+            "Intersection Street 1",
+            "Intersection Street 2",
+            "Address Type",
+            "City",
+            "Landmark",
+            "Facility Type",
+            "Status",
+            "Due Date",
+            "Resolution Description",
+            "Resolution Action Updated Date",
+            "Community Board",
+            "Police Precinct",
+            "Borough",
+            "X Coordinate (State Plane)",
+            "Y Coordinate (State Plane)",
+            "Open Data Channel Type",
+            "Park Facility Name",
+            "Park Borough",
+            "Vehicle Type",
+            "Taxi Company Borough",
+            "Taxi Pick Up Location",
+            "Bridge Highway Name",
+            "Bridge Highway Direction",
+            "Road Ramp",
+            "Bridge Highway Segment",
+            "Location"
+        ],
+        "rows_affected": 8594,
+        "description": "Corrected confidently identifiable mojibake values using a consistent encoding conversion.",
+        "outcome": "success",
+        "timestamp": "2026-09-07T15:47:12.620190"
+    }
+]

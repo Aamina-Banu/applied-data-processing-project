@@ -1,9 +1,7 @@
 import pandas as pd
 import pytest
 
-from nyc311.complaint_effectiveness_analyzer import (
-    ComplaintEffectivenessAnalyzer
-)
+from nyc311 import ComplaintEffectivenessAnalyzer
 
 
 def test_complaint_effectiveness_analyzer():

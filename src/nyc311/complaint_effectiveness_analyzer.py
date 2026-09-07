@@ -57,6 +57,11 @@ class ComplaintEffectivenessAnalyzer(NYC311DataProcessor):
             A dictionary containing complaint counts, closure
             statistics, anomaly counts, and resolution-time metrics.
 
+            closure_rate is None when there are no consistently
+            classified records. average_resolution_hours and
+            median_resolution_hours are None when there are no
+            eligible resolution records.
+
         Raises
         ------
         ValueError

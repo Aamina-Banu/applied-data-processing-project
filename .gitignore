@@ -6,6 +6,9 @@ data/processed/*
 __pycache__/
 *.pyc
 
+# Python package metadata
+*.egg-info/
+
 # Virtual environments
 .venv/
 venv/

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from nyc311.data_inspector import DataInspector
+from nyc311 import DataInspector
 
 
 def test_data_inspector():

@@ -61,6 +61,8 @@ However, an in-memory log is lost when the program ends. Saving the completed lo
 
 JSON was selected because the change log is already structured as a list of dictionaries and can be stored in a readable and reproducible format.
 
+The `__change_log` is deliberately a list of dictionaries: the list preserves the order of treatment attempts, while each dictionary stores named fields in a JSON-friendly structure.
+
 The save operation does not clear or modify the private in-memory change log.
 
 Status:
@@ -281,6 +283,8 @@ Counting changed cells would not match the change-log field name rows_affected.
 
 Using a set ensures each affected row is counted once.
 
+This is a deliberate set choice because uniqueness is required for the `affected_rows` count.
+
 Status:
 Active.
 
@@ -312,6 +316,8 @@ Recording the outcome also makes failed treatment attempts traceable rather than
 
 Status:
 Active.
+
+Together, the set and list-of-dictionaries choices provide deliberate Python data-structure decisions for the coursework requirement, with each structure selected for a specific uniqueness, ordering, named-field, or serialization need.
 
 Preserve Ambiguous Values Rather Than Guess
 
@@ -548,7 +554,7 @@ This does not yet mean the complete Task 1 is finished because final verificatio
 
 Future Work
 
-The treatment methods should be verified against the full January 2025 dataset before final Task 1 verification.
+The treatment methods have been verified against the full January 2025 dataset.
 
 The final Task 1 review should also confirm that the package interface, documentation, tests, data-structure justification, and reproducibility evidence remain consistent with the implemented behavior.
 

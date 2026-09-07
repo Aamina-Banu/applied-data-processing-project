@@ -218,7 +218,7 @@ The DataInspector implementation has been executed and verified through its unit
 
 The current overall project test suite reports:
 
-11 passed.
+15 passed.
 
 ---
 

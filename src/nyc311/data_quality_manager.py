@@ -73,11 +73,13 @@ class DataQualityManager(NYC311DataProcessor):
 
         created_date = pd.to_datetime(
             dataset["Created Date"],
+            format="%m/%d/%Y %I:%M:%S %p",
             errors="coerce",
         )
 
         closed_date = pd.to_datetime(
             dataset["Closed Date"],
+            format="%m/%d/%Y %I:%M:%S %p",
             errors="coerce",
         )
 
@@ -494,11 +496,13 @@ class DataQualityManager(NYC311DataProcessor):
 
         created_date = pd.to_datetime(
             result["Created Date"],
+            format="%m/%d/%Y %I:%M:%S %p",
             errors="coerce",
         )
 
         closed_date = pd.to_datetime(
             result["Closed Date"],
+            format="%m/%d/%Y %I:%M:%S %p",
             errors="coerce",
         )
 
@@ -535,11 +539,13 @@ class DataQualityManager(NYC311DataProcessor):
 
             treated_created_date = pd.to_datetime(
                 result["Created Date"],
+                format="%m/%d/%Y %I:%M:%S %p",
                 errors="coerce",
             )
 
             treated_closed_date = pd.to_datetime(
                 result["Closed Date"],
+                format="%m/%d/%Y %I:%M:%S %p",
                 errors="coerce",
             )
 
