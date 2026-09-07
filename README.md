@@ -49,7 +49,7 @@ The reusable Python package is located in:
 src/nyc311/
 ```
 
-The current package contains an abstract base processor and three related processors:
+The package contains an abstract base processor and three related processors:
 
 - `NYC311DataProcessor` — abstract base class that provides the common dataset-processing interface.
 - `DataInspector` — describes the structure and basic characteristics of the dataset.
@@ -64,9 +64,12 @@ The package exposes its main classes through the `nyc311` public interface.
 Development and testing have been performed using:
 
 - Python 3.14.0
-- Windows 10 Pro 64-bit
+- Windows 64-bit, build 26200
 - 13th Gen Intel Core i7-13620H
 - 16 GB RAM
+- pandas 3.0.5
+- PyArrow 25.0.1
+- Matplotlib 3.11.1
 
 Main Python dependencies are pinned in `requirements.txt`.
 
@@ -116,7 +119,7 @@ Run the complete unit test suite from the project root:
 python -m pytest -q
 ```
 
-The current Task 1 test suite contains **15 passing tests**, including validation, exception-handling, data-treatment, change-log, and persistence checks.
+The current Task 1 test suite contains **16 passing tests**, including validation, exception-handling, data-treatment, change-log, persistence, and encapsulation checks.
 
 ## Data Quality Processing
 
@@ -133,6 +136,58 @@ Data-quality treatment attempts are recorded in a change log. The log can also b
 
 Full-dataset verification results and generated evidence are stored in the `results/` directory.
 
+## Storage Format Investigation
+
+Task 2 investigates three storage formats using the full January 2025 dataset:
+
+- CSV
+- JSON
+- Parquet
+
+The benchmark measures:
+
+- full-dataset write time;
+- full-dataset read time;
+- one-column read time;
+- uncompressed file size;
+- Gzip-compressed file size.
+
+Each timing operation uses one discarded warm-up run followed by five measured runs. Median, minimum, maximum, and range values are retained.
+
+The benchmark implementation is located at:
+
+```text
+notebooks/storage_benchmark.py
+```
+
+The benchmark results are stored in:
+
+```text
+results/storage_benchmark_results.csv
+results/storage_file_sizes.csv
+results/storage_benchmark_environment.txt
+```
+
+The benchmark timing chart is generated from the saved results using:
+
+```text
+notebooks/storage_benchmark_chart.py
+```
+
+and stored as:
+
+```text
+results/storage_benchmark_timing_chart.png
+```
+
+Based on the measured benchmark results, **Parquet** was selected as the storage format for the project.
+
+The complete Task 2 technical record, including the benchmark method, measurements, environment, limitations, and storage decision, is maintained in:
+
+```text
+docs/decisions/task2_storage_investigation.md
+```
+
 ## Design Documentation
 
 Design decisions for the current classes are documented in:
@@ -147,28 +202,74 @@ The implementation also uses deliberate Python data structures, including a set 
 
 ## Current Project Status
 
-Task 1 currently includes:
+### Task 1 - Object-Oriented Data Processing
+
+**Complete**
+
+Implemented components include:
 
 - reusable `src`-layout Python package;
 - abstract base class and three related subclasses;
-- controlled dataset access;
+- controlled dataset access and encapsulation;
 - overridden processing behavior;
 - input and required-column validation;
 - built-in and custom exception handling;
 - data-quality treatments;
 - in-memory and persistent change logging;
 - public package interface;
-- unit tests;
+- 16 passing unit tests;
 - class diagrams and design-decision documentation;
 - full January 2025 dataset verification.
 
-Tasks 2–4 will be added to the repository as the project progresses.
+### Task 2 - Storage Format Investigation
+
+**Complete**
+
+Completed work includes:
+
+- CSV, JSON, and Parquet comparison;
+- uncompressed and Gzip-compressed file-size measurements;
+- full-dataset write benchmarks;
+- full-dataset read benchmarks;
+- one-column read benchmarks;
+- one discarded warm-up and five measured runs per timing operation;
+- median and range calculations;
+- benchmark environment recording;
+- benchmark timing chart;
+- technical investigation documentation;
+- Parquet selected as the project storage format.
+
+### Task 3 - Data Pipeline and Analysis
+
+**Pending**
+
+### Task 4 - Scaling Investigation
+
+**Pending**
+
+Route A has been selected for the scaling investigation.
+
+### Task 5 - Professional Practice
+
+**In progress**
+
+Current professional-practice work includes:
+
+- Git history maintained throughout development;
+- meaningful commits;
+- feature-branch development and merge workflow;
+- pinned dependencies;
+- dataset provenance and checksum documentation;
+- reproducibility setup;
+- AI-use documentation maintained during development.
+
+Additional Task 5 requirements will be completed as the project progresses.
 
 ## Reproducibility
 
 Dependency versions are pinned in `requirements.txt`, and the project is configured as an installable `src`-layout package through `pyproject.toml`.
 
-The intended setup sequence is:
+The core setup and verification sequence is:
 
 ```powershell
 python -m venv .venv
@@ -176,6 +277,18 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 python -m pip install -e .
 python -m pytest -q
+```
+
+Task 2 benchmark results can be reproduced using:
+
+```powershell
+python notebooks/storage_benchmark.py
+```
+
+The Task 2 timing chart can then be generated from the saved benchmark results using:
+
+```powershell
+python notebooks/storage_benchmark_chart.py
 ```
 
 Dataset provenance and integrity information are maintained separately in `DATA_SOURCE.md`.
