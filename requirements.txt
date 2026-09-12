@@ -7,3 +7,4 @@ tzdata==2026.3
 pytest==9.1.1
 matplotlib==3.11.1
 scipy==1.18.1
+pyspark==4.2.0
