@@ -1,0 +1,13 @@
+framework,run_type,run_number,execution_time_seconds
+pandas,warmup,1,1.7053328999318182
+spark,warmup,1,1.7491159997880459
+pandas,measured,1,1.6031203996390104
+spark,measured,1,1.0787319000810385
+pandas,measured,2,1.5813098000362515
+spark,measured,2,1.0625780001282692
+pandas,measured,3,1.57185099972412
+spark,measured,3,0.9419964998960495
+pandas,measured,4,1.654349799733609
+spark,measured,4,0.9273657999001443
+pandas,measured,5,1.7018169998191297
+spark,measured,5,1.0979128000326455

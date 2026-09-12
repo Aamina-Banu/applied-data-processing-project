@@ -1,0 +1,60 @@
+== Physical Plan ==
+AdaptiveSparkPlan (10)
++- Filter (9)
+   +- ObjectHashAggregate (8)
+      +- Exchange (7)
+         +- ObjectHashAggregate (6)
+            +- Project (5)
+               +- Filter (4)
+                  +- InMemoryTableScan (1)
+                        +- InMemoryRelation (2)
+                              +- Scan csv  (3)
+
+
+(1) InMemoryTableScan
+Output [4]: [Agency#20, Closed Date#19, Created Date#18, Problem (formerly Complaint Type)#22]
+Arguments: [Agency#20, Closed Date#19, Created Date#18, Problem (formerly Complaint Type)#22], [isnotnull((cast((cast(gettimestamp(Closed Date#19, MM/dd/yyyy hh:mm:ss a, TimestampType, try_to_timestamp, Some(Asia/Colombo), true) as bigint) - cast(gettimestamp(Created Date#18, MM/dd/yyyy hh:mm:ss a, TimestampType, try_to_timestamp, Some(Asia/Colombo), true) as bigint)) as double) / 3600.0)), ((cast((cast(gettimestamp(Closed Date#19, MM/dd/yyyy hh:mm:ss a, TimestampType, try_to_timestamp, Some(Asia/Colombo), true) as bigint) - cast(gettimestamp(Created Date#18, MM/dd/yyyy hh:mm:ss a, TimestampType, try_to_timestamp, Some(Asia/Colombo), true) as bigint)) as double) / 3600.0) >= 0.0)]
+
+(2) InMemoryRelation
+Arguments: [Unique Key#17, Created Date#18, Closed Date#19, Agency#20, Agency Name#21, Problem (formerly Complaint Type)#22, Problem Detail (formerly Descriptor)#23, Additional Details#24, Location Type#25, Incident Zip#26, Incident Address#27, Street Name#28, Cross Street 1#29, Cross Street 2#30, Intersection Street 1#31, Intersection Street 2#32, Address Type#33, City#34, Landmark#35, Facility Type#36, Status#37, Due Date#38, Resolution Description#39, Resolution Action Updated Date#40, Community Board#41, ... 19 more fields], StorageLevel(disk, memory, deserialized, 1 replicas)
+
+(3) Scan csv 
+Output [44]: [Unique Key#17, Created Date#18, Closed Date#19, Agency#20, Agency Name#21, Problem (formerly Complaint Type)#22, Problem Detail (formerly Descriptor)#23, Additional Details#24, Location Type#25, Incident Zip#26, Incident Address#27, Street Name#28, Cross Street 1#29, Cross Street 2#30, Intersection Street 1#31, Intersection Street 2#32, Address Type#33, City#34, Landmark#35, Facility Type#36, Status#37, Due Date#38, Resolution Description#39, Resolution Action Updated Date#40, Community Board#41, Council District#42, Police Precinct#43, BBL#44L, Borough#45, X Coordinate (State Plane)#46, Y Coordinate (State Plane)#47, Open Data Channel Type#48, Park Facility Name#49, Park Borough#50, Vehicle Type#51, Taxi Company Borough#52, Taxi Pick Up Location#53, Bridge Highway Name#54, Bridge Highway Direction#55, Road Ramp#56, Bridge Highway Segment#57, Latitude#58, Longitude#59, Location#60]
+Batched: false
+Location: InMemoryFileIndex [file:/D:/applied-data-processing-project/data/processed/task4_spark_input.csv]
+ReadSchema: struct<Unique Key:int,Created Date:string,Closed Date:string,Agency:string,Agency Name:string,Problem (formerly Complaint Type):string,Problem Detail (formerly Descriptor):string,Additional Details:string,Location Type:string,Incident Zip:int,Incident Address:string,Street Name:string,Cross Street 1:string,Cross Street 2:string,Intersection Street 1:string,Intersection Street 2:string,Address Type:string,City:string,Landmark:string,Facility Type:string,Status:string,Due Date:string,Resolution Description:string,Resolution Action Updated Date:string,Community Board:string,Council District:int,Police Precinct:string,BBL:bigint,Borough:string,X Coordinate (State Plane):string,Y Coordinate (State Plane):string,Open Data Channel Type:string,Park Facility Name:string,Park Borough:string,Vehicle Type:string,Taxi Company Borough:string,Taxi Pick Up Location:string,Bridge Highway Name:string,Bridge Highway Direction:string,Road Ramp:string,Bridge Highway Segment:string,Latitude:double,Longitude:double,Location:string>
+
+(4) Filter
+Input [4]: [Agency#20, Closed Date#19, Created Date#18, Problem (formerly Complaint Type)#22]
+Condition : (isnotnull((cast((cast(gettimestamp(Closed Date#19, MM/dd/yyyy hh:mm:ss a, TimestampType, try_to_timestamp, Some(Asia/Colombo), true) as bigint) - cast(gettimestamp(Created Date#18, MM/dd/yyyy hh:mm:ss a, TimestampType, try_to_timestamp, Some(Asia/Colombo), true) as bigint)) as double) / 3600.0)) AND ((cast((cast(gettimestamp(Closed Date#19, MM/dd/yyyy hh:mm:ss a, TimestampType, try_to_timestamp, Some(Asia/Colombo), true) as bigint) - cast(gettimestamp(Created Date#18, MM/dd/yyyy hh:mm:ss a, TimestampType, try_to_timestamp, Some(Asia/Colombo), true) as bigint)) as double) / 3600.0) >= 0.0))
+
+(5) Project
+Output [3]: [Agency#20, Problem (formerly Complaint Type)#22, (cast((cast(gettimestamp(Closed Date#19, MM/dd/yyyy hh:mm:ss a, TimestampType, try_to_timestamp, Some(Asia/Colombo), true) as bigint) - cast(gettimestamp(Created Date#18, MM/dd/yyyy hh:mm:ss a, TimestampType, try_to_timestamp, Some(Asia/Colombo), true) as bigint)) as double) / 3600.0) AS Resolution Time (hours)#1476]
+Input [4]: [Agency#20, Closed Date#19, Created Date#18, Problem (formerly Complaint Type)#22]
+
+(6) ObjectHashAggregate
+Input [3]: [Agency#20, Problem (formerly Complaint Type)#22, Resolution Time (hours)#1476]
+Keys [2]: [Agency#20, Problem (formerly Complaint Type)#22]
+Functions [3]: [partial_count(Resolution Time (hours)#1476), partial_percentile(Resolution Time (hours)#1476, 0.5, 1, 0, 0, false), partial_avg(Resolution Time (hours)#1476)]
+Aggregate Attributes [4]: [count#2188L, buf#2189, sum#2190, count#2191L]
+Results [6]: [Agency#20, Problem (formerly Complaint Type)#22, count#2192L, buf#2193, sum#2194, count#2195L]
+
+(7) Exchange
+Input [6]: [Agency#20, Problem (formerly Complaint Type)#22, count#2192L, buf#2193, sum#2194, count#2195L]
+Arguments: hashpartitioning(Agency#20, Problem (formerly Complaint Type)#22, 200), ENSURE_REQUIREMENTS, [plan_id=88]
+
+(8) ObjectHashAggregate
+Input [6]: [Agency#20, Problem (formerly Complaint Type)#22, count#2192L, buf#2193, sum#2194, count#2195L]
+Keys [2]: [Agency#20, Problem (formerly Complaint Type)#22]
+Functions [3]: [count(Resolution Time (hours)#1476), percentile(Resolution Time (hours)#1476, 0.5, 1, 0, 0, false), avg(Resolution Time (hours)#1476)]
+Aggregate Attributes [3]: [count(Resolution Time (hours)#1476)#1525L, percentile(Resolution Time (hours)#1476, 0.5, 1, 0, 0, false)#1526, avg(Resolution Time (hours)#1476)#1527]
+Results [5]: [Agency#20, Problem (formerly Complaint Type)#22, count(Resolution Time (hours)#1476)#1525L AS complaint_count#1477L, percentile(Resolution Time (hours)#1476, 0.5, 1, 0, 0, false)#1526 AS median_resolution_hours#1478, avg(Resolution Time (hours)#1476)#1527 AS mean_resolution_hours#1479]
+
+(9) Filter
+Input [5]: [Agency#20, Problem (formerly Complaint Type)#22, complaint_count#1477L, median_resolution_hours#1478, mean_resolution_hours#1479]
+Condition : (complaint_count#1477L >= 30)
+
+(10) AdaptiveSparkPlan
+Output [5]: [Agency#20, Problem (formerly Complaint Type)#22, complaint_count#1477L, median_resolution_hours#1478, mean_resolution_hours#1479]
+Arguments: isFinalPlan=false
+
