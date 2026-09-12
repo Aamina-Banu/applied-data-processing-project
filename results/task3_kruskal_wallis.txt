@@ -1,0 +1,23 @@
+Kruskal-Wallis Test
+
+Minimum agency sample size: 1000
+Number of agencies included: 12
+Agencies included: NYPD, HPD, DSNY, DOT, DEP, DOB, DOHMH, DPR, TLC, EDC, DCWP, DHS
+
+Sample sizes:
+Agency
+NYPD     145980
+HPD      108696
+DSNY      25860
+DOT       15683
+DEP       14896
+DOB        7484
+DOHMH      5839
+DPR        3485
+TLC        2458
+EDC        1802
+DCWP       1314
+DHS        1118
+
+H statistic: 189258.3886
+p-value: 0

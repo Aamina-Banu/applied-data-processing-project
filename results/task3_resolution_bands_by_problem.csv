@@ -1,0 +1,159 @@
+Problem (formerly Complaint Type),Very short,Short,Medium,Long,Very long
+AHV Inspection Unit,1,0,0,0,2
+APPLIANCE,1,65,189,281,1553
+Abandoned Bike,4,27,58,49,29
+Abandoned Vehicle,3714,1631,149,9,1
+Air Quality,58,302,242,167,40
+Animal Facility - No Permit,3,0,0,0,0
+Animal in a Park,218,31,9,11,15
+Animal-Abuse,584,226,13,1,0
+Asbestos,56,25,11,9,10
+BEST/Site Safety,9,16,4,2,2
+Beach/Pool/Sauna Complaint,0,0,1,3,5
+Bench,0,0,1,0,2
+Bike Rack,2,0,4,5,35
+Bike/Roller/Skate Chronic,37,11,1,0,0
+Blocked Driveway,9977,3880,254,4,0
+Boilers,18,9,55,81,328
+Bridge Condition,0,5,6,7,3
+Broken Parking Meter,3,8,21,40,165
+Building Condition,0,1,0,0,0
+Building Drinking Water Tank,0,0,2,0,0
+Building/Use,133,83,53,33,1132
+Bus Stop Shelter Complaint,10,12,17,22,51
+Bus Stop Shelter Placement,8,3,0,0,1
+Commercial Disposal Complaint,134,13,31,12,2
+Consumer Complaint,1,300,311,165,537
+Cranes and Derricks,2,2,0,1,0
+Curb Condition,0,1,9,152,409
+DOOR/WINDOW,4,106,436,820,3445
+Damaged Tree,42,180,218,239,186
+Day Care,0,0,128,13,4
+Dead Animal,8,204,287,130,49
+Dead/Dying Tree,9,34,55,55,109
+Dept of Investigations,0,0,1,0,0
+Derelict Vehicles,152,2039,1083,184,20
+Dirty Condition,289,2039,1227,270,32
+Disorderly Youth,5,3,0,0,0
+Drinking,119,40,2,0,0
+Drinking Water,3,10,8,5,8
+Drug Activity,1483,130,3,0,0
+Dumpster Complaint,0,27,68,46,15
+E-Scooter,3,5,7,5,0
+ELECTRIC,6,172,507,501,1619
+ELEVATOR,0,2,2,16,94
+Electrical,4,8,46,79,51
+Elevator,85,247,221,161,857
+Emergency Response Team (ERT),31,8,22,81,107
+Encampment,1502,391,60,31,378
+FLOORING/STAIRS,1,54,292,417,1610
+Ferry Complaint,0,1,3,2,4
+Ferry Inquiry,1,6,12,11,0
+Food Establishment,0,0,10,38,836
+Food Poisoning,43,15,91,41,71
+For Hire Vehicle Complaint,0,0,0,20,1348
+GENERAL,63,79,227,395,2205
+General Construction/Plumbing,516,494,400,238,809
+Graffiti,71,149,30,81,1142
+Green Taxi Complaint,0,2,0,0,31
+HEAT/HOT WATER,2219,13223,36356,14435,46
+Hazardous Materials,79,19,4,3,3
+Highway Condition,3,27,72,57,93
+Highway Sign - Damaged,1,1,0,2,2
+Highway Sign - Dangling,0,1,1,1,1
+Highway Sign - Missing,0,0,0,1,1
+Homeless Person Assistance,400,70,8,1,1
+Illegal Animal Kept as Pet,18,0,0,0,0
+Illegal Animal Sold,3,0,0,0,0
+Illegal Dumping,31,383,1069,716,329
+Illegal Fireworks,227,38,5,0,0
+Illegal Parking,32182,9221,459,12,0
+Illegal Posting,0,63,117,123,16
+Illegal Tree Damage,5,14,44,57,87
+Incorrect Data,3,1,1,0,0
+Indoor Air Quality,222,256,108,40,6
+Indoor Sewage,0,0,2,12,25
+Industrial Waste,18,11,1,4,0
+Institution Disposal Complaint,0,0,1,1,1
+Investigations and Discipline (IAD),7,8,14,12,9
+Lead,21,517,603,318,72
+LinkNYC,0,2,3,0,7
+Litter Basket Complaint,2,10,6,2,2
+Litter Basket Request,4,51,82,125,37
+Lost Property,109,151,173,70,0
+Lot Condition,0,2,1,5,5
+Maintenance or Facility,29,86,116,136,518
+Missed Collection,41,372,1389,894,283
+Mobile Food Vendor,0,0,6,19,217
+Mold,6,10,4,1,0
+Municipal Parking Facility,0,3,2,0,0
+New Tree Request,0,0,0,0,39
+Noise,179,1087,1120,1124,647
+Noise - Commercial,3553,476,5,0,0
+Noise - Helicopter,0,0,0,0,1802
+Noise - House of Worship,163,10,0,0,0
+Noise - Park,64,9,0,0,0
+Noise - Residential,36090,29323,1363,7,0
+Noise - Street/Sidewalk,2873,490,15,0,0
+Noise - Vehicle,1585,305,12,0,0
+Non-Emergency Police Matter,1177,276,10,0,0
+Non-Residential Heat,0,0,0,4,460
+OUTSIDE BUILDING,0,1,3,5,53
+Obstruction,85,547,387,167,65
+Oil or Gas Spill,0,0,1,1,0
+Outdoor Dining,10,53,77,102,21
+Overgrown Tree/Branches,25,47,47,54,189
+PAINT/PLASTER,1,270,907,1069,3215
+PLUMBING,28,422,1189,1389,4208
+Panhandling,955,121,2,0,0
+Pet Shop,14,0,0,0,0
+Plant,5,0,0,0,0
+Plumbing,9,25,53,71,89
+Poison Ivy,0,0,0,0,1
+Posting Advertisement,5,1,0,0,0
+Public Toilet,0,0,0,0,1
+Radioactive Material,0,0,1,1,0
+Real Time Enforcement,233,105,60,33,17
+Recycling Basket Complaint,0,1,1,3,0
+Residential Disposal Complaint,26,604,465,140,49
+Rodent,1341,315,253,130,79
+Root/Sewer/Sidewalk Condition,1,1,6,17,474
+SAFETY,1,59,184,235,698
+Sanitation Worker or Vehicle Complaint,3,24,79,135,69
+Scaffold Safety,3,8,2,0,0
+School Maintenance,10,7,12,18,239
+Sewer,805,235,114,71,83
+Sidewalk Condition,48,129,245,657,481
+Smoking or Vaping,0,0,0,0,522
+Snow or Ice,207,856,2192,1312,594
+Special Natural Area District (SNAD),0,0,0,0,1
+Special Projects Inspection Team (SPIT),26,14,13,26,214
+Street Condition,346,2358,1959,442,109
+Street Light Condition,222,233,293,546,960
+Street Sign - Damaged,13,33,52,84,121
+Street Sign - Dangling,3,29,71,161,163
+Street Sign - Missing,13,38,41,55,101
+Street Sweeping Complaint,27,78,117,120,95
+Tattooing,0,0,0,0,16
+Taxi Complaint,0,1,1,1,544
+Taxi Compliment,0,0,3,1,3
+Traffic,754,67,0,0,0
+Traffic Signal Condition,2357,882,529,130,225
+UNSANITARY CONDITION,3,224,1012,1629,6924
+Unleashed Dog,53,0,0,0,0
+Unsanitary Animal Facility,1,0,0,0,0
+Unsanitary Animal Pvt Property,111,18,16,5,4
+Unsanitary Pigeon Condition,74,28,29,13,2
+Unspecified,0,1,0,0,0
+Uprooted Stump,0,0,0,1,5
+Urinating in Public,37,14,0,0,0
+Vendor Enforcement,1141,70,59,0,0
+Violation of Park Rules,48,6,0,0,3
+WATER LEAK,1,98,405,608,2414
+Water Conservation,176,54,53,35,9
+Water Maintenance,0,0,1,0,0
+Water Quality,9,25,27,15,34
+Water System,3354,1029,592,509,965
+Wayfinding,0,0,0,0,1
+Window Guard,0,0,1,0,0
+Wood Pile Remaining,1,0,4,4,10

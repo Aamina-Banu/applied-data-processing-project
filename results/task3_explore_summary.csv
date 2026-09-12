@@ -1,0 +1,10 @@
+metric,value
+total_records,337551.0
+usable_closed_dates,335009.0
+missing_closed_dates,2542.0
+negative_resolution_times,96.0
+closed_status_missing_date,1025.0
+non_closed_status_with_date,302.0
+valid_resolution_records,334913.0
+median_resolution_hours,15.057777777777778
+mean_resolution_hours,240.51352323422634
