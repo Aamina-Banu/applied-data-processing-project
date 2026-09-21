@@ -249,7 +249,7 @@ All three subclasses are currently exercised through the project's unit test sui
 
 The current test suite reports:
 
-16 passed.
+28 passed (21 September 2026 follow-up).
 
 ---
 
@@ -263,3 +263,11 @@ If an important parent-class design decision changes later, record:
 - what changed;
 - why it changed; and
 - any trade-off introduced by the change.
+
+## Final audit limitation (12 September 2026)
+
+At the original audit, the constructor stored the supplied DataFrame reference directly (`self.__dataset = dataset`). Later caller mutation changed processor reads. No implementation was changed during that audit.
+
+## T1 follow-up (21 September 2026): RESOLVED
+
+The constructor now stores `dataset.copy()`. `test_constructor_owns_dataset_copy` verifies that mutating the caller's DataFrame or a returned copy leaves processor-held data unchanged. The full suite passed: 28 tests.

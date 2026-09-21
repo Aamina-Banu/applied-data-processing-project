@@ -1,4 +1,6 @@
 import json
+import os
+import tempfile
 from copy import deepcopy
 
 import pandas as pd
@@ -177,8 +179,9 @@ class DataQualityManager(NYC311DataProcessor):
         affected_rows = set()
 
         for column in text_columns:
-            for index in result.index:
-                value = result.at[index, column]
+            column_position = result.columns.get_loc(column)
+            for index in range(len(result)):
+                value = result.iat[index, column_position]
 
                 if not isinstance(value, str):
                     continue
@@ -197,9 +200,9 @@ class DataQualityManager(NYC311DataProcessor):
                     )
 
                     if corrected_value != value:
-                        result.at[
+                        result.iat[
                             index,
-                            column,
+                            column_position,
                         ] = corrected_value
 
                         affected_rows.add(index)
@@ -306,6 +309,10 @@ class DataQualityManager(NYC311DataProcessor):
             failure_message = str(error)
             raise
 
+        except Exception as error:
+            failure_message = f"{type(error).__name__}: {error}"
+            raise
+
         else:
             outcome = "success"
 
@@ -408,6 +415,10 @@ class DataQualityManager(NYC311DataProcessor):
         except NYC311DataQualityError as error:
             outcome = "failed"
             failure_message = str(error)
+            raise
+
+        except Exception as error:
+            failure_message = f"{type(error).__name__}: {error}"
             raise
 
         else:
@@ -570,6 +581,10 @@ class DataQualityManager(NYC311DataProcessor):
             failure_message = str(error)
             raise
 
+        except Exception as error:
+            failure_message = f"{type(error).__name__}: {error}"
+            raise
+
         else:
             outcome = "success"
 
@@ -603,6 +618,9 @@ class DataQualityManager(NYC311DataProcessor):
         """
         Save the data quality change log to a JSON file.
 
+        Replace the destination only after a temporary file in the
+        same directory has been written and closed successfully.
+
         Parameters
         ----------
         file_path : str
@@ -620,20 +638,31 @@ class DataQualityManager(NYC311DataProcessor):
                 "File path must be a string."
             )
 
+        temporary_path = None
         try:
-            with open(
-                file_path,
-                "w",
+            with tempfile.NamedTemporaryFile(
+                mode="w",
                 encoding="utf-8",
+                dir=os.path.dirname(os.path.abspath(file_path)),
+                delete=False,
             ) as file:
+                temporary_path = file.name
                 json.dump(
                     self.__change_log,
                     file,
                     indent=4,
                 )
 
-        except OSError:
-            raise
+            os.replace(temporary_path, file_path)
+            temporary_path = None
+
+        finally:
+            if temporary_path is not None:
+                try:
+                    os.unlink(temporary_path)
+                except OSError:
+                    # Do not mask the original save failure if cleanup fails.
+                    pass
 
     def get_change_log(self) -> list:
         """

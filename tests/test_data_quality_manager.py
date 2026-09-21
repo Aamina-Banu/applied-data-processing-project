@@ -304,7 +304,8 @@ def test_handle_invalid_zip_failure(monkeypatch):
     assert "clearly invalid ZIP values" in log[-1]["description"]
 
 
-def test_save_change_log(tmp_path):
+@pytest.mark.parametrize("existing", [False, True])
+def test_save_change_log(tmp_path, existing):
     data = pd.DataFrame({
         "BBL": [0, 1234567890]
     })
@@ -314,6 +315,9 @@ def test_save_change_log(tmp_path):
     manager.replace_invalid_bbl(data)
 
     file_path = tmp_path / "change_log.json"
+
+    if existing:
+        file_path.write_text("previous contents", encoding="utf-8")
 
     manager.save_change_log(str(file_path))
 
@@ -331,3 +335,134 @@ def test_save_change_log(tmp_path):
     assert saved_log[0]["fields"] == ["BBL"]
     assert saved_log[0]["rows_affected"] == 1
     assert saved_log[0]["outcome"] == "success"
+
+
+def test_correct_encoding_with_duplicate_index_labels():
+    data = pd.DataFrame(
+        {
+            "Description": ["Caf\u00c3\u00a9", "Caf\u00c3\u00a9", "Normal"],
+            "Details": ["Caf\u00c3\u00a9", "Normal", "Normal"],
+        },
+        index=[7, 7, 7],
+    )
+    snapshot = data.copy(deep=True)
+    manager = DataQualityManager(data)
+
+    result = manager.correct_encoding(data)
+
+    expected = pd.DataFrame(
+        {
+            "Description": ["Caf\u00e9", "Caf\u00e9", "Normal"],
+            "Details": ["Caf\u00e9", "Normal", "Normal"],
+        },
+        index=[7, 7, 7],
+    )
+    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(data, snapshot)
+    log = manager.get_change_log()
+    assert len(log) == 1
+    assert log[0]["treatment"] == "correct_encoding"
+    assert log[0]["fields"] == ["Description", "Details"]
+    assert log[0]["rows_affected"] == 2
+    assert log[0]["outcome"] == "success"
+
+
+@pytest.mark.parametrize("existing", [False, True])
+@pytest.mark.parametrize("error_type", [OSError, ValueError])
+def test_save_change_log_write_failure_preserves_destination(
+    tmp_path, monkeypatch, existing, error_type
+):
+    manager = DataQualityManager(pd.DataFrame({"BBL": [0]}))
+    manager.replace_invalid_bbl(manager.get_dataset())
+    snapshot = manager.get_change_log()
+    destination = tmp_path / "change_log.json"
+    if existing:
+        destination.write_bytes(b"previous contents")
+    failure = error_type("simulated partial write failure")
+
+    def fail_dump(data, file, **kwargs):
+        file.write("partial JSON")
+        raise failure
+
+    monkeypatch.setattr(data_quality_module.json, "dump", fail_dump)
+
+    with pytest.raises(error_type) as raised:
+        manager.save_change_log(str(destination))
+
+    assert raised.value is failure
+    if existing:
+        assert destination.read_bytes() == b"previous contents"
+    else:
+        assert not destination.exists()
+    assert list(tmp_path.iterdir()) == ([destination] if existing else [])
+    assert manager.get_change_log() == snapshot
+
+
+@pytest.mark.parametrize("existing", [False, True])
+def test_save_change_log_replace_failure_preserves_destination(
+    tmp_path, monkeypatch, existing
+):
+    import os
+
+    manager = DataQualityManager(pd.DataFrame({"BBL": [0]}))
+    manager.replace_invalid_bbl(manager.get_dataset())
+    snapshot = manager.get_change_log()
+    destination = tmp_path / "change_log.json"
+    if existing:
+        destination.write_bytes(b"previous contents")
+    failure = PermissionError("simulated replacement failure")
+
+    def fail_replace(source, target):
+        raise failure
+
+    monkeypatch.setattr(os, "replace", fail_replace)
+
+    with pytest.raises(PermissionError) as raised:
+        manager.save_change_log(str(destination))
+
+    assert raised.value is failure
+    if existing:
+        assert destination.read_bytes() == b"previous contents"
+    else:
+        assert not destination.exists()
+    assert list(tmp_path.iterdir()) == ([destination] if existing else [])
+    assert manager.get_change_log() == snapshot
+
+
+@pytest.mark.parametrize(
+    "method,values",
+    [
+        ("replace_invalid_bbl", {"BBL": [0]}),
+        ("handle_invalid_zip", {"Incident Zip": [83]}),
+        (
+            "handle_date_inconsistencies",
+            {
+                "Created Date": ["01/02/2025 10:00:00 AM"],
+                "Closed Date": ["01/01/2025 10:00:00 AM"],
+            },
+        ),
+    ],
+)
+def test_unexpected_treatment_failure_is_logged(monkeypatch, method, values):
+    data = pd.DataFrame(values)
+    snapshot = data.copy(deep=True)
+    manager = DataQualityManager(data)
+    failure = RuntimeError("simulated assignment failure")
+
+    def fail_assignment(self, key, value):
+        raise failure
+
+    monkeypatch.setattr(type(data.loc), "__setitem__", fail_assignment)
+
+    with pytest.raises(RuntimeError) as raised:
+        getattr(manager, method)(data)
+
+    assert raised.value is failure
+    pd.testing.assert_frame_equal(data, snapshot)
+    pd.testing.assert_frame_equal(manager.get_dataset(), snapshot)
+    log = manager.get_change_log()
+    assert len(log) == 1
+    assert log[0]["treatment"] == method
+    assert log[0]["outcome"] == "failed"
+    assert log[0]["rows_affected"] == 1
+    assert log[0]["description"] == "RuntimeError: simulated assignment failure"

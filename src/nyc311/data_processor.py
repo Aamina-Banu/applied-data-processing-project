@@ -30,7 +30,7 @@ class NYC311DataProcessor(ABC):
                 "Dataset must be a pandas DataFrame."
             )
 
-        self.__dataset = dataset
+        self.__dataset = dataset.copy()
 
     def get_dataset(self) -> DataFrame:
         """

@@ -483,7 +483,7 @@ Current Test Status
 
 The complete project test suite currently reports:
 
-16 passed
+28 passed (21 September 2026 follow-up)
 
 This includes the DataInspector, ComplaintEffectivenessAnalyzer, and DataQualityManager tests.
 
@@ -546,7 +546,7 @@ keeps encoding conversion tolerant of individual Unicode conversion failures.
 
 The current complete project test suite reports:
 
-16 passed
+28 passed (21 September 2026 follow-up)
 
 The exception-handling and JSON persistence behavior are now present and verified through the current synthetic unit-test suite.
 
@@ -569,3 +569,17 @@ why it changed;
 the evidence supporting the change; and
 
 any trade-off introduced.
+
+## Final audit limitations (12 September 2026)
+
+At the original audit, 16 tests passed but did not cover duplicate-index inputs or failed disk writes. With duplicate labels, label-based `.at` access skipped mojibake strings and logged zero affected rows.
+
+`process_data()` counts encoding detections per cell; `correct_encoding()` now counts distinct affected physical rows. These counts are not interchangeable for arbitrary DataFrames with multiple affected cells per row.
+
+At the original audit, unexpected treatment exceptions could leave a null failure description, and direct writes could truncate the destination. No implementation was changed during that audit.
+
+## T2–T3 follow-up (21 September 2026): RESOLVED
+
+`correct_encoding()` now uses physical row positions and counts each changed row once, including with duplicate index labels. The duplicate-index regression checks three changed cells across two rows while preserving the input DataFrame.
+
+The BBL, ZIP, and date treatments now log the exception type and message for unexpected errors and re-raise the same exception. `save_change_log()` writes a same-directory temporary file and replaces the destination only after the write closes successfully. Regression tests simulate partial-write and replacement failures, with and without an existing destination; they verify destination preservation, temporary-file cleanup, and unchanged in-memory logs. Cleanup remains best-effort if unlink itself fails. The full suite passed: 28 tests.

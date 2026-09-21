@@ -22,3 +22,16 @@ def test_data_inspector():
         "ZIP Code"
     ]
     assert result["missing_values"]["ZIP Code"] == 1
+
+
+def test_constructor_owns_dataset_copy():
+    data = pd.DataFrame({"Status": ["Open"]})
+    snapshot = data.copy(deep=True)
+    inspector = DataInspector(data)
+
+    data.loc[0, "Status"] = "Closed"
+    pd.testing.assert_frame_equal(inspector.get_dataset(), snapshot)
+
+    returned = inspector.get_dataset()
+    returned.loc[0, "Status"] = "Pending"
+    pd.testing.assert_frame_equal(inspector.get_dataset(), snapshot)
