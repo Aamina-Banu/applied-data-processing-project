@@ -1,9 +1,8 @@
 Closed status but missing Closed Date: 1025
-Non-Closed status but Closed Date present: 302
+Non-Closed status but Closed Date present: 206
 
 Statuses of non-Closed records with a Closed Date:
 Status
-Pending        96
 Assigned       85
 Open           81
 Unspecified    35

@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 import pandas as pd
 
 from nyc311 import DataQualityManager
@@ -52,6 +53,15 @@ working_df = manager.handle_date_inconsistencies(
 working_df = manager.correct_encoding(
     working_df
 )
+
+scrubbed_path = Path("data/processed/nyc_311_january_2025_scrubbed.parquet")
+scrubbed_path.parent.mkdir(parents=True, exist_ok=True)
+working_df.to_parquet(scrubbed_path, index=False)
+
+print("\n--- SCRUBBED DATASET SAVED ---")
+print("Saved to:", scrubbed_path)
+print("Rows:", len(working_df))
+print("Columns:", len(working_df.columns))
 
 
 # --------------------------------------------------

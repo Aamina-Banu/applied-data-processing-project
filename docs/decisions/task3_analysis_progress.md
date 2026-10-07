@@ -48,7 +48,7 @@ Detailed findings are recorded in:
 - `results/full_dataset_verification.md`
 - `results/data_quality_change_log.json`
 
-### Dataset-level findings
+### Dataset-level findings (raw, before treatment)
 
 - Total rows: 337,551
 - Total columns: 44
@@ -236,7 +236,7 @@ Resolution time was calculated as:
 
 and converted to hours.
 
-Before excluding invalid negative durations:
+Historical raw-input diagnostics, before Scrub treatment:
 
 - Valid numeric durations: 335,009
 - Mean: approximately 240.42 hours
@@ -247,9 +247,7 @@ Before excluding invalid negative durations:
 - Maximum: approximately 14,491.33 hours
 - Negative durations: 96
 
-The 96 negative durations correspond to the previously identified date inconsistencies.
-
-For resolution-duration analysis, these records were excluded from the analytical subset rather than deleted from the raw dataset.
+The 96 negative durations correspond to the previously identified date inconsistencies. Scrub now replaces their Closed Dates with missing values before Explore loads the treated dataset. Explore therefore reports zero negative durations; its existing valid-duration filter excludes these missing durations. All rows remain in the scrubbed dataset and the raw dataset is unchanged.
 
 After filtering:
 
@@ -313,14 +311,14 @@ This supports the decision to consider complaint composition when examining agen
 
 Usable `Closed Date` values:
 
-- Present: 335,009
-- Missing/unusable: 2,542
+- Present: 334,913
+- Missing/unusable: 2,638
 
 Missing Closed Dates by agency included:
 
 - DHS: 1,024
 - DPR: 380
-- DOT: 248
+- DOT: 344
 - DEP: 215
 - DOHMH: 203
 - HPD: 187
@@ -335,7 +333,7 @@ Examples:
 - DPR: approximately 90.17%
 - TLC: approximately 93.46%
 - DOHMH: approximately 96.64%
-- DOT: approximately 98.45%
+- DOT: approximately 97.85%
 - DEP: approximately 98.58%
 - DSNY: approximately 99.56%
 - HPD: approximately 99.83%
@@ -502,17 +500,17 @@ Examples from the agency percentage results:
 
 - NYPD:
   - Very short: approximately 66.51%
-  - Short: approximately 31.39%
-  - Medium: approximately 1.85%
-  - Long: approximately 0.20%
-  - Very long: approximately 0.04%
+  - Short: approximately 31.88%
+  - Medium: approximately 1.58%
+  - Long: approximately 0.02%
+  - Very long: approximately 0.00% (rounded)
 
 - HPD:
-  - Very short: approximately 10.91%
-  - Short: approximately 22.57%
-  - Medium: approximately 19.60%
-  - Long: approximately 14.91%
-  - Very long: approximately 32.01%
+  - Very short: approximately 2.14%
+  - Short: approximately 13.59%
+  - Medium: approximately 38.37%
+  - Long: approximately 20.06%
+  - Very long: approximately 25.84%
 
 - EDC:
   - Very long: 100%
@@ -713,7 +711,7 @@ The identified Status/Closed Date conflicts indicate that complaint tracking sho
 Relevant inconsistencies include:
 
 - 1,025 Closed records without a usable Closed Date
-- 302 non-Closed records containing a usable Closed Date
+- 206 non-Closed records containing a usable Closed Date after Scrub (302 in the raw data)
 
 These records could be investigated when producing operational metrics based on complaint closure.
 
@@ -923,3 +921,19 @@ Additional dependency introduced for the statistical analysis:
 `scipy==1.18.1`
 
 This version should remain pinned in `requirements.txt`.
+
+## Final audit clarification (12 September 2026)
+
+The agency percentages above were corrected from `results/task3_resolution_band_percentages_by_agency.csv`. Both agency/problem band-count and percentage files, both resolution-summary tables, all 118 qualifying segments, and H = 189258.3885694288 were independently recomputed from the local raw archive in memory. The saved p-value is floating-point zero. Percentages are rounded and may not sum to exactly 100; a displayed 0.00% is not proof of zero records.
+
+The former raw-input handoff limitation was addressed by the T5 improvement: `full_dataset_verification.py` now saves the final treated DataFrame to `data/processed/nyc_311_january_2025_scrubbed.parquet`, and both Explore and Model load that file. The raw ZIP remains immutable. This Task 3 file is separate from the unchanged storage-benchmark artifacts. Run Scrub, Explore, then Model in that order.
+
+T5 verification (7 October 2026): the saved scrubbed Parquet contains all 337,551 rows and 44 original columns. Created Date and Closed Date load as strings, so existing date parsing is unchanged. Regenerated Explore outputs contain 334,913 usable Closed Dates, 2,638 missing Closed Dates, zero negative durations, 1,025 Closed-status records without a date, and 206 non-Closed records with a date. DOT completeness is 97.853622%. Complaint counts, crosstabs and the 334,913 eligible duration values are unchanged. The problem summary and the top-15 and median-resolution figures are byte-for-byte unchanged. All six Model output files are byte-for-byte unchanged, including 118 qualifying segments, agency samples, resolution bands and the Kruskal-Wallis result; the statistical inputs are identical. Raw ZIP and storage-benchmark file checksums are unchanged.
+
+Task 3/4 duration eligibility does not require Closed status. Their 334,913 records include 206 records whose status is not Closed (302 date-present non-Closed records minus 96 negative durations). The Task 1 analyzer uses a different, Closed-status eligibility rule. Do not substitute these metrics for one another or equate recorded durations with verified service outcomes.
+
+The extract's Created Date range is `2025-01-01 15:43:03` to `2025-01-31 15:42:07`; full-calendar-month coverage is not established. See `DATA_SOURCE.md`. Duration summaries describe observed eligible intervals, not the eventual duration of every request.
+
+No independence check for repeated complaints at the same location is implemented. The Kruskal-Wallis result relies on an independence assumption and does not remove clustering or complaint-mix confounding. These are interpretation limits, not changes to the saved analysis.
+
+`results/data_quality_audit.md` is historical pre-treatment evidence with future-tense wording. Current outcomes are in `results/full_dataset_verification.md` and the change log; that historical evidence was not rewritten. Task 3 implementation and evidence are present, with remaining audit issues in `final_repository_audit.md`.

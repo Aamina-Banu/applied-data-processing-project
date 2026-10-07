@@ -49,7 +49,18 @@ Both implementations produced:
 - valid resolution-time rows: 334,913;
 - qualifying Agency × Problem groups: 118.
 
-This confirms that the pandas and Spark implementations operated on the same valid records and produced the same number of qualifying groups.
+T7 full-data group-level validation (7 October 2026) was completed by executing the existing pandas and Spark functions and matching results by `Agency` and `Problem (formerly Complaint Type)`, rather than row position because group row ordering differs.
+
+- Valid rows: pandas = 334,913; Spark = 334,913.
+- Qualifying groups: pandas = 118; Spark = 118; groups compared = 118.
+- Missing pandas groups = 0; missing Spark groups = 0.
+- Complaint-count mismatches = 0.
+- Exact median mismatches = 0.
+- Mean values showed only negligible floating-point differences; maximum absolute mean difference = 4.547473508864641e-13 hours.
+
+pandas uses exact median. Spark uses `F.median`, which resolved to exact `percentile(..., 0.5, ...)` semantics in the executed plan.
+
+This verifies analytical equivalence for the full-data comparison. It does not prove that pandas `iloc` and Spark `limit` select identical subsets during the crossover benchmark. The comparison scripts themselves still do not assert full result equivalence.
 
 ### Main Benchmark Results
 
@@ -76,6 +87,8 @@ The relevant structure contains:
 - final complaint-count filter.
 
 The Exchange is evidence that the groupBy operation requires a shuffle. Records must be redistributed according to the Agency and Problem grouping keys before the final aggregation can be completed.
+
+In the existing implementation, date parsing/conversion and derived duration calculation are narrow transformations because each row can be processed independently within its partition. Filtering to retain valid, non-negative durations is also narrow: records can be filtered without redistributing data. Grouping by Agency and Problem is a wide transformation because records with the same keys must be brought together across partitions. The grouped aggregation therefore introduces a shuffle / Exchange stage, consistent with the saved physical plan.
 
 The physical plan showed 200 shuffle partitions for the Exchange. This is different from Spark's default parallelism of 16. The default parallelism relates to the local execution environment, while `spark.sql.shuffle.partitions` controls the configured number of partitions used for SQL shuffle operations.
 
@@ -110,18 +123,18 @@ For every dataset size:
 
 | Rows | pandas Median (s) | Spark Median (s) |
 |---:|---:|---:|
-| 50,000 | 0.217331 | 0.323697 |
-| 100,000 | 0.428519 | 0.504119 |
-| 200,000 | 0.851316 | 0.809977 |
-| 337,551 | 1.455938 | 1.300276 |
-| 675,102 | 3.066859 | 2.198715 |
-| 1,350,204 | 5.896643 | 4.170922 |
+| 50,000 | 0.218578 | 0.360008 |
+| 100,000 | 0.422165 | 0.479237 |
+| 200,000 | 0.857344 | 0.844417 |
+| 337,551 | 1.445108 | 1.294357 |
+| 675,102 | 3.127418 | 2.166003 |
+| 1,350,204 | 5.912945 | 3.982850 |
 
 pandas had the lower median analytical execution time at 50,000 and 100,000 rows.
 
 Spark had the lower median analytical execution time at 200,000 rows and every larger tested workload.
 
-Therefore, the observed execution-only crossover lies between 100,000 and 200,000 rows on this hardware. The first tested dataset size at which Spark produced a lower median execution time was 200,000 rows.
+The measured median ordering changes between the tested 100,000- and 200,000-row workloads on this hardware. This brackets an observed execution-only crossover, not a proven continuous or unique threshold. The first tested size at which Spark produced a lower median execution time was 200,000 rows.
 
 No exact crossover row count was measured between 100,000 and 200,000, so an exact value should not be claimed.
 
@@ -154,6 +167,18 @@ Crossover experiment:
 
 ## Current Technical Status
 
-Task 4 Route A technical investigation is complete once the crossover chart has been successfully generated and the final evidence files have been checked.
+Task 4 Route A scripts, timing evidence, physical plan, and crossover chart are present and were inspected in the final audit. The Spark feature branch was merged at `3636e8c`. Remaining validation and reproducibility limitations are listed below.
 
 The final report explanation and interpretation must be written separately by the student using the measured evidence recorded here.
+
+## Final audit limitations (12 September 2026)
+
+All main and crossover summary statistics were recomputed from saved runs and agree. The chart is readable and visually consistent with the saved summary. At 200,000 rows, pandas' measured range is 0.832829-0.878679 s and Spark's is 0.818704-0.872626 s: the ranges overlap and the median advantage is about 0.012927 s. No significance test or stable exact threshold is established.
+
+At the September audit, full group-key and aggregate-value equivalence had not been checked or saved. The later T7 validation above establishes full-data equivalence, with negligible mean rounding differences; crossover equivalence remains unverified. The crossover also uses pandas `iloc` and unordered Spark `limit`; equal row counts do not guarantee the same subset or repeated-record multiplicities. The student should verify identical inputs and aggregate results at every size before strengthening equivalence claims.
+
+The saved plan is explicitly `isFinalPlan=false`. Its Exchange establishes planned shuffle work with 200 configured partitions; it does not record final adaptive partition counts, shuffle bytes, or runtime stage metrics. `local[*]` uses one machine, not a multi-node deployment.
+
+Input loading, schema inference, Spark cache materialization, synthetic construction, and pandas' initial DataFrame copy are outside analytical timing. This is an execution-only comparison, not end-to-end latency. The main script reuses an existing Spark CSV without checking provenance. The audit confirmed that the current local CSV is byte-identical to the ZIP member, but the script does not enforce that condition.
+
+The plan records the session timezone as Asia/Colombo; pandas uses naive timestamps. This documents the local setup, not a verified New York elapsed-time interpretation across daylight-saving boundaries. The crossover script does not save its own environment or per-size validation counts. Spark was not rerun during this documentation-only audit.

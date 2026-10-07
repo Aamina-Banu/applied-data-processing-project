@@ -5,7 +5,7 @@ from scipy.stats import kruskal
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "nyc_311_january_2025.zip"
+SCRUBBED_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "nyc_311_january_2025_scrubbed.parquet"
 RESULTS_PATH = PROJECT_ROOT / "results"
 
 PROBLEM_COLUMN = "Problem (formerly Complaint Type)"
@@ -33,7 +33,7 @@ RESOLUTION_LABELS = [
 RESULTS_PATH.mkdir(parents=True, exist_ok=True)
 
 
-df = pd.read_csv(RAW_DATA_PATH)
+df = pd.read_parquet(SCRUBBED_DATA_PATH)
 
 
 df["Created Date Parsed"] = pd.to_datetime(
