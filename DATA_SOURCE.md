@@ -26,7 +26,7 @@ Reuse terms: NYC Open Data provides public reuse access, subject to applicable p
 
 Official reference: https://opendata.cityofnewyork.us/faq/
 
-## Audit evidence and acquisition limitations (12 September 2026)
+## Provenance evidence and acquisition limitations
 
 Dataset page: [NYC Open Data, erm2-nwe9](https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2020-to-Present/erm2-nwe9).
 
@@ -41,6 +41,6 @@ Parsing Created Date with `%m/%d/%Y %I:%M:%S %p` gives:
 
 These are observed extract boundaries, not a reconstructed portal filter. They leave full-calendar-month coverage uncertain. Exact filter times/timezone and export settings were not retained; the student must review them before claiming complete January coverage. No replacement extract was acquired during this audit.
 
-The extraction date and manual acquisition method above are the existing provenance record, not independently authenticated by this audit. The ZIP is local and Git-ignored; it has no recorded immutable distribution URL. Reproduction of the same numbers requires this checksum-matching archive. A live export may produce different rows, schema, or closure updates.
+The extraction date and manual acquisition method above are based on the project's recorded provenance information and were not independently reconstructed from the source portal.
 
 Potential personal/location-related fields are assessed in [the GDPR technical note](docs/decisions/task5_gdpr_assessment.md). Retaining an immutable raw input is an integrity measure, not an indefinite-retention policy.
