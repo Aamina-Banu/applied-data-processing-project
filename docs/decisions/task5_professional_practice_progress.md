@@ -21,8 +21,17 @@ Important points in the development history include:
 
 The feature-development history demonstrates the use of branches and merge commits rather than carrying out all development directly on `main`.
 
-The final repository state was pushed successfully to the remote `main` branch on 7 October 2026. After the push:
+The repository state at that time was pushed successfully to the remote `main` branch on 7 October 2026. After the push:
 
 ```text
 HEAD -> main
 origin/main -> e68e051
+```
+
+## Task 4 verification update - 21 October 2026
+
+The crossover now constructs each workload once and gives both engines the same temporary CSV. Both Task 4 scripts verify the raw ZIP checksum and extracted CSV provenance. Automated checks passed at all six sizes for request multiplicities, valid-row counts, group keys, counts, exact medians and tolerance-based means. The full current test suite passed: 30 tests, including two new input-provenance regression tests.
+
+The crossover timing CSVs and chart were replaced with the successful 4 GB-driver-heap rerun. The new validation CSV and environment TXT record the checks and configuration. See `task4_scaling_investigation.md` for current results and limits. The earlier 7 October clean-checkout reproduction remains historical evidence; this revision was verified in the existing workspace, not through another fresh-clone reproduction.
+
+These revision files are local working-tree changes at the time of this update; they have not been committed or pushed as part of this work. No new merge or remote publication is claimed.

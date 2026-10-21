@@ -134,3 +134,8 @@ A separate clean-checkout reproduction was completed on 7 October 2026. This ver
 These checks are bounded technical evidence rather than proof that every possible personal datum or secret is absent.
 
 Ordinary author/contact metadata in Git differs from accidental disclosure of service-request records. Remote settings, unreachable Git objects, and exhaustive semantic review of all descriptive text remain unverified.
+## Task 4 handling update - 21 October 2026
+
+The revised crossover creates one temporary full-schema CSV per workload under the Git-ignored `data/processed/` directory. These retain the same location-related fields as the source and are not anonymized. Both engines read the same file; it is removed after that size completes. An interrupted run can leave temporary files requiring review under the existing retention position.
+
+The successful six-size rerun removed its workload CSVs after use. Published validation evidence contains only workload hashes, aggregate counts, numerical differences and check outcomes, rather than request identifiers or record-level locations. The current suite passed 30 tests. This update does not establish a lawful basis, change the retention position, or constitute a new full-history/privacy audit or clean-checkout reproduction.

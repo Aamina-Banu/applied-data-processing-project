@@ -60,7 +60,7 @@ T7 full-data group-level validation (7 October 2026) was completed by executing 
 
 pandas uses exact median. Spark uses `F.median`, which resolved to exact `percentile(..., 0.5, ...)` semantics in the executed plan.
 
-This verifies analytical equivalence for the full-data comparison. It does not prove that pandas `iloc` and Spark `limit` select identical subsets during the crossover benchmark. The comparison scripts themselves still do not assert full result equivalence.
+This verifies analytical equivalence for the historical full-data comparison. The crossover input-selection and automated validation gaps were addressed in the 21 October 2026 revision described below; the separate main comparison script still reports counts rather than asserting all aggregate values.
 
 ### Main Benchmark Results
 
@@ -119,7 +119,7 @@ For every dataset size:
 - median, minimum, maximum, and range were calculated;
 - dataset preparation and Spark caching were performed outside the analytical execution timing.
 
-### Crossover Results
+### Historical crossover results (superseded by validated October run)
 
 | Rows | pandas Median (s) | Spark Median (s) |
 |---:|---:|---:|
@@ -164,8 +164,12 @@ Crossover experiment:
 - `results/task4_crossover_timings.csv`
 - `results/task4_crossover_summary.csv`
 - `results/task4_crossover_chart.png`
+- `results/task4_crossover_validation.csv`
+- `results/task4_crossover_environment.txt`
 
 ## Current Technical Status
+
+The current crossover evidence is the validated 21 October 2026 revision below. Its chart and CSVs replace the original crossover artifacts. Historical measurements below are retained for traceability, not as the current results.
 
 Task 4 Route A scripts, timing evidence, physical plan, and crossover chart are present and were inspected in the final audit. The Spark feature branch was merged at `3636e8c`. Remaining validation and reproducibility limitations are listed below.
 
@@ -173,12 +177,41 @@ The final report explanation and interpretation must be written separately by th
 
 ## Final audit limitations (12 September 2026)
 
-All main and crossover summary statistics were recomputed from saved runs and agree. The chart is readable and visually consistent with the saved summary. At 200,000 rows, pandas' measured range is 0.832829-0.878679 s and Spark's is 0.818704-0.872626 s: the ranges overlap and the median advantage is about 0.012927 s. No significance test or stable exact threshold is established.
+All main and crossover summary statistics were recomputed from saved runs and agree. The chart is readable and visually consistent with the saved summary. In the historical run, at 200,000 rows, pandas' measured range is 0.832829-0.878679 s and Spark's is 0.818704-0.872626 s: the ranges overlap and the median advantage is about 0.012927 s. No significance test or stable exact threshold is established.
 
-At the September audit, full group-key and aggregate-value equivalence had not been checked or saved. The later T7 validation above establishes full-data equivalence, with negligible mean rounding differences; crossover equivalence remains unverified. The crossover also uses pandas `iloc` and unordered Spark `limit`; equal row counts do not guarantee the same subset or repeated-record multiplicities. The student should verify identical inputs and aggregate results at every size before strengthening equivalence claims.
+At the September audit, full group-key and aggregate-value equivalence had not been checked or saved. The later T7 validation above establishes full-data equivalence, with negligible mean rounding differences; crossover equivalence was still unverified at that time. The original crossover used pandas `iloc` and unordered Spark `limit`; equal row counts do not guarantee the same subset or repeated-record multiplicities. These historical limitations motivated the validated crossover revision below.
 
 The saved plan is explicitly `isFinalPlan=false`. Its Exchange establishes planned shuffle work with 200 configured partitions; it does not record final adaptive partition counts, shuffle bytes, or runtime stage metrics. `local[*]` uses one machine, not a multi-node deployment.
 
-Input loading, schema inference, Spark cache materialization, synthetic construction, and pandas' initial DataFrame copy are outside analytical timing. This is an execution-only comparison, not end-to-end latency. The main script reuses an existing Spark CSV without checking provenance. The audit confirmed that the current local CSV is byte-identical to the ZIP member, but the script does not enforce that condition.
+Input loading, schema inference, Spark cache materialization, synthetic construction, and pandas' initial DataFrame copy are outside analytical timing. This is an execution-only comparison, not end-to-end latency. At the original audit the main script reused the Spark CSV without enforcing provenance. Both scripts now verify the raw ZIP checksum and the extracted CSV member hash before use.
 
-The plan records the session timezone as Asia/Colombo; pandas uses naive timestamps. This documents the local setup, not a verified New York elapsed-time interpretation across daylight-saving boundaries. The crossover script does not save its own environment or per-size validation counts. Spark was not rerun during this documentation-only audit.
+The plan records the session timezone as Asia/Colombo; pandas uses naive timestamps. This documents the local setup, not a verified New York elapsed-time interpretation across daylight-saving boundaries. The original crossover script did not save its own environment or per-size validation counts; the October revision now saves both. Spark was not rerun during this documentation-only audit.
+
+## Validated crossover revision - 21 October 2026
+
+This revision supersedes the crossover timings above. The separate main benchmark remains a historical measurement and was not rerun. Both Task 4 scripts now check the raw archive SHA-256 against DATA_SOURCE.md and reject an existing Spark input CSV unless it is byte-identical to the ZIP member.
+
+Each workload is constructed once using the original source order and deterministic repetition. It is written to a temporary full-schema CSV, and both pandas and Spark read that same file. The file hash is saved. Request-key multiplicities are compared, including repetitions; the original source keys are verified unique. This replaces unordered Spark limit/union selection. Local temporary workload CSVs are removed after use and remain outside Git.
+
+Before each size is timed, automated checks compare valid-row counts, complete group-key sets, exact complaint counts, exact medians, and mean values (rtol=1e-12, atol=1e-9 hours). Every check passed at all six sizes. No request identifiers are saved in the validation evidence. Maximum observed absolute mean difference: 1.36424205265939e-12 hours.
+
+The initial revised run exhausted the default JVM heap at 675,102 rows. No partial timing outputs from that attempt were published. The complete successful rerun explicitly used a 4 GB Spark driver heap on the same laptop; this configuration and actual JVM heap are recorded in the new environment file. Both engines use the full schema. Workload construction, CSV loading/schema inference, cache materialization, input/result validation and the initial pandas copy are excluded from timing. One warm-up and five measured runs are used per size. Spark uses UTC for wall-clock subtraction consistent with naive pandas timestamps; this is not a claim about New York timezone-aware elapsed durations.
+
+| Rows | pandas median (s) | pandas min?max (s) | Spark median (s) | Spark min?max (s) |
+|---:|---:|---:|---:|---:|
+| 50,000 | 0.281102 | 0.272470 - 0.285823 | 0.520089 | 0.487135 - 0.637430 |
+| 100,000 | 0.549183 | 0.523152 - 0.576185 | 0.743925 | 0.664871 - 0.779731 |
+| 200,000 | 1.070260 | 1.055800 - 1.098874 | 0.865213 | 0.826980 - 0.879443 |
+| 337,551 | 1.755395 | 1.738755 - 1.791466 | 1.006816 | 0.952603 - 1.032325 |
+| 675,102 | 3.476244 | 3.427236 - 3.546697 | 1.312564 | 1.290362 - 1.503595 |
+| 1,350,204 | 7.039885 | 6.933191 - 7.161490 | 1.972563 | 1.936737 - 2.417334 |
+
+pandas has the lower median at 50,000 and 100,000 rows; Spark has the lower median at 200,000 rows and all larger tested sizes. The median ordering changes between the tested 100,000- and 200,000-row workloads. At 200,000 rows the measured ranges do not overlap in this run. Five repetitions are not proof of a universal or stable threshold: no exact crossover, confidence interval or significance test is established. The result is specific to this hardware, full-schema workload, software, heap, partitioning and prepared-cache setup. Larger workloads repeat existing observations and also change which groups reach the 30-record threshold.
+
+This remains an execution-only comparison. Startup and preparation are excluded, so it does not establish an end-to-end crossover for a one-off job. The historical 5.207211-second startup measurement belongs to the separate original main run; it is not a newly measured startup for this revised configuration. New timings should not be interpreted as a pure speed improvement over the older experiment because preparation, partition layout and heap configuration changed.
+
+The revised chart shows medians with measured minimum?maximum bars, not confidence intervals.
+
+New evidence: `results/task4_crossover_validation.csv` and `results/task4_crossover_environment.txt`. Refreshed evidence: `results/task4_crossover_timings.csv`, `results/task4_crossover_summary.csv`, and `results/task4_crossover_chart.png`.
+
+Verification: all six workloads completed, all per-size correctness checks passed, and the 30-test suite passed (including two provenance regression tests). The earlier September/October audit limitations above describe the historical state; remaining limits concerning end-to-end timing, adaptive runtime stage metrics, single-machine execution and real-world timezone interpretation still apply.

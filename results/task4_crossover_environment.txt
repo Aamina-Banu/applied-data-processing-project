@@ -1,0 +1,20 @@
+Run UTC: 2026-10-21T11:51:45.538952+00:00
+Python: 3.14.0 (tags/v3.14.0:ebf955d, Oct  7 2025, 10:15:03) [MSC v.1944 64 bit (AMD64)]
+pandas: 3.0.5
+NumPy: 2.5.2
+Spark: 4.2.0
+OS: Windows-11-10.0.26300-SP0
+Processor: Intel64 Family 6 Model 186 Stepping 2, GenuineIntel
+Java: 21.0.7
+Master: local[*]
+Driver memory: 4g
+JVM maximum heap bytes: 4294967296
+Default parallelism: 16
+Shuffle partitions: 200
+AQE: true
+Session timezone: UTC
+Source CSV SHA256: bfcaac2775bd86f431c797481b28a9654cc755f6521a63cb89934be8bbb6a466
+Warmups per size: 1; measured runs: 5
+Timing excludes input I/O, workload construction, caching, validation and pandas initial copy.
+Means tolerance: rtol=1e-12, atol=1e-9 hours; counts and medians exact.
+Synthetic larger workloads repeat source observations; no new observations.

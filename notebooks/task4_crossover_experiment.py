@@ -1,4 +1,11 @@
 import gc
+import hashlib
+import platform
+import sys
+import tempfile
+from datetime import datetime, timezone
+import numpy as np
+from task4_input import verified_input
 import time
 from pathlib import Path
 import matplotlib.pyplot as plt
@@ -31,7 +38,10 @@ DATASET_SIZES = [
 WARMUP_RUNS = 1
 MEASURED_RUNS = 5
 
+data_path, source_csv_sha256 = verified_input(project_root)
 df_base = pd.read_csv(data_path)
+if not df_base["Unique Key"].is_unique:
+    raise ValueError("Source request keys must be unique")
 
 
 def make_dataset_size(source_df, target_rows):
@@ -97,38 +107,20 @@ def run_pandas(source_df):
 
     execution_time = time.perf_counter() - start_time
 
-    return grouped, execution_time
+    return grouped, len(valid_df), execution_time
 
 
 spark = (
     SparkSession.builder
     .master("local[*]")
     .appName("NYC311Task4Crossover")
+    .config("spark.driver.memory", "4g")
     .getOrCreate()
 )
 
-spark_base = (
-    spark.read
-    .option("header", True)
-    .option("inferSchema", True)
-    .csv(str(data_path))
-)
-
-spark_base_rows = spark_base.count()
-
-
-def make_spark_dataset_size(source_df, source_rows, target_rows):
-    if target_rows <= source_rows:
-        return source_df.limit(target_rows)
-
-    repeats = (target_rows // source_rows) + 1
-
-    expanded_df = source_df
-
-    for _ in range(repeats - 1):
-        expanded_df = expanded_df.unionByName(source_df)
-
-    return expanded_df.limit(target_rows)
+# UTC preserves naive wall-clock subtraction consistently across the two tools.
+spark.conf.set("spark.sql.session.timeZone", "UTC")
+spark.sparkContext.setLogLevel("ERROR")
 
 
 def build_spark_pipeline(source_df):
@@ -206,6 +198,10 @@ def run_spark(source_df):
 
 
 timing_rows = []
+validation_rows = []
+keys = ["Agency", "Problem (formerly Complaint Type)"]
+metrics = ["complaint_count", "median_resolution_hours", "mean_resolution_hours"]
+
 
 for size in DATASET_SIZES:
     print(f"\nDataset size: {size:,}")
@@ -216,14 +212,43 @@ for size in DATASET_SIZES:
         size
     )
 
-    spark_df = make_spark_dataset_size(
-        spark_base,
-        spark_base_rows,
-        size
-    )
-
-    spark_df = spark_df.cache()
+    # One canonical file per workload; both engines read the same records.
+    # Preparation, input checks and result validation are outside timing.
+    workload_dir = tempfile.TemporaryDirectory(dir=project_root / "data/processed")
+    workload_path = Path(workload_dir.name) / "workload.csv"
+    pandas_df.to_csv(workload_path, index=False)
+    with workload_path.open("rb") as stream:
+        workload_sha256 = hashlib.file_digest(stream, "sha256").hexdigest()
+    pandas_df = pd.read_csv(workload_path)
+    spark_df = spark.read.csv(str(workload_path), header=True, inferSchema=True).cache()
     spark_row_count = spark_df.count()
+    if len(pandas_df) != size or spark_row_count != size:
+        raise ValueError("Workload row counts differ")
+    expected_keys = pandas_df["Unique Key"].value_counts().sort_index()
+    actual_keys = pd.Series({row["Unique Key"]: row["count"] for row in
+                             spark_df.groupBy("Unique Key").count().collect()}).sort_index()
+    pd.testing.assert_series_equal(expected_keys, actual_keys, check_names=False,
+                                   check_dtype=False, check_index_type=False)
+    pandas_check, pandas_valid, _ = run_pandas(pandas_df)
+    valid_check, grouped_check = build_spark_pipeline(spark_df)
+    spark_valid = valid_check.count()
+    spark_check = pd.DataFrame([row.asDict() for row in grouped_check.collect()])
+    left = pandas_check.set_index(keys).sort_index()[metrics]
+    right = spark_check.set_index(keys).sort_index()[metrics]
+    pd.testing.assert_index_equal(left.index, right.index)
+    if pandas_valid != spark_valid:
+        raise ValueError("Valid-row counts differ")
+    np.testing.assert_array_equal(left["complaint_count"], right["complaint_count"])
+    np.testing.assert_array_equal(left["median_resolution_hours"], right["median_resolution_hours"])
+    np.testing.assert_allclose(left["mean_resolution_hours"], right["mean_resolution_hours"],
+                               rtol=1e-12, atol=1e-9)
+    validation_rows.append(dict(dataset_rows=size, workload_sha256=workload_sha256,
+        input_key_multiplicities_match=True, pandas_valid_rows=pandas_valid,
+        spark_valid_rows=spark_valid, qualifying_groups=len(left),
+        group_keys_match=True, counts_match=True, exact_medians_match=True,
+        max_mean_absolute_difference_hours=float((left["mean_resolution_hours"]-
+            right["mean_resolution_hours"]).abs().max()), validation_passed=True))
+    print(f"Validation passed: {pandas_valid:,} valid rows, {len(left)} groups", flush=True)
 
     print(
         f"Pandas rows: {len(pandas_df):,}"
@@ -238,7 +263,7 @@ for size in DATASET_SIZES:
         run_spark(spark_df)
 
     for run_number in range(1, MEASURED_RUNS + 1):
-        pandas_result, pandas_time = run_pandas(
+        pandas_result, _, pandas_time = run_pandas(
             pandas_df
         )
 
@@ -270,7 +295,8 @@ for size in DATASET_SIZES:
             f"spark={spark_time:.6f}s"
         )
 
-    spark_df.unpersist()
+    spark_df.unpersist(blocking=True)
+    workload_dir.cleanup()
 
     del pandas_df
     del spark_df
@@ -278,6 +304,27 @@ for size in DATASET_SIZES:
     gc.collect()
 
 
+pd.DataFrame(validation_rows).to_csv(results_path / "task4_crossover_validation.csv", index=False)
+environment = [
+    f"Run UTC: {datetime.now(timezone.utc).isoformat()}",
+    f"Python: {sys.version}", f"pandas: {pd.__version__}", f"NumPy: {np.__version__}",
+    f"Spark: {spark.version}", f"OS: {platform.platform()}",
+    f"Processor: {platform.processor()}",
+    f"Java: {spark.sparkContext._jvm.java.lang.System.getProperty('java.version')}",
+    f"Master: {spark.sparkContext.master}",
+    f"Driver memory: {spark.conf.get('spark.driver.memory')}",
+    f"JVM maximum heap bytes: {spark.sparkContext._jvm.java.lang.Runtime.getRuntime().maxMemory()}",
+    f"Default parallelism: {spark.sparkContext.defaultParallelism}",
+    f"Shuffle partitions: {spark.conf.get('spark.sql.shuffle.partitions')}",
+    f"AQE: {spark.conf.get('spark.sql.adaptive.enabled')}",
+    f"Session timezone: {spark.conf.get('spark.sql.session.timeZone')}",
+    f"Source CSV SHA256: {source_csv_sha256}",
+    f"Warmups per size: {WARMUP_RUNS}; measured runs: {MEASURED_RUNS}",
+    "Timing excludes input I/O, workload construction, caching, validation and pandas initial copy.",
+    "Means tolerance: rtol=1e-12, atol=1e-9 hours; counts and medians exact.",
+    "Synthetic larger workloads repeat source observations; no new observations.",
+]
+(results_path / "task4_crossover_environment.txt").write_text("\n".join(environment), encoding="utf-8")
 timings_df = pd.DataFrame(timing_rows)
 
 timings_output_path = (
@@ -331,19 +378,13 @@ chart_df = summary_df.pivot(
 
 plt.figure(figsize=(9, 5))
 
-plt.plot(
-    chart_df["dataset_rows"],
-    chart_df["pandas"],
-    marker="o",
-    label="pandas"
-)
+for framework in ["pandas", "spark"]:
+    series = summary_df[summary_df.framework == framework].sort_values("dataset_rows")
+    plt.errorbar(series.dataset_rows, series.median_seconds,
+        yerr=[series.median_seconds-series.minimum_seconds,
+              series.maximum_seconds-series.median_seconds],
+        marker="o", capsize=3, label=framework)
 
-plt.plot(
-    chart_df["dataset_rows"],
-    chart_df["spark"],
-    marker="o",
-    label="Spark"
-)
 
 plt.xlabel("Dataset size (rows)")
 plt.ylabel("Median execution time (seconds)")

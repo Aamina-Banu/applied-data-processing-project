@@ -1,11 +1,11 @@
 import platform
-import shutil
 import statistics
 import subprocess
 import sys
 import time
-import zipfile
 from pathlib import Path
+
+from task4_input import verified_input
 
 import pandas as pd
 from pyspark.sql import SparkSession
@@ -41,23 +41,7 @@ MEASURED_RUNS = 5
 
 spark_input_path.parent.mkdir(parents=True, exist_ok=True)
 
-if not spark_input_path.exists():
-    with zipfile.ZipFile(data_path, "r") as archive:
-        csv_members = [
-            name
-            for name in archive.namelist()
-            if name.lower().endswith(".csv")
-        ]
-
-        if not csv_members:
-            raise FileNotFoundError(
-                "No CSV file found inside the raw ZIP."
-            )
-
-        with archive.open(csv_members[0]) as source:
-            with spark_input_path.open("wb") as target:
-                shutil.copyfileobj(source, target)
-
+spark_input_path, source_csv_sha256 = verified_input(project_root)
 
 df_raw = pd.read_csv(data_path)
 

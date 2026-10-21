@@ -44,3 +44,6 @@ These are observed extract boundaries, not a reconstructed portal filter. They l
 The extraction date and manual acquisition method above are based on the project's recorded provenance information and were not independently reconstructed from the source portal.
 
 Potential personal/location-related fields are assessed in [the GDPR technical note](docs/decisions/task5_gdpr_assessment.md). Retaining an immutable raw input is an integrity measure, not an indefinite-retention policy.
+## Automated Task 4 provenance check - 21 October 2026
+
+Both Task 4 entry scripts now verify the ZIP against the recorded SHA-256 and require the extracted Spark CSV to match the archived CSV member byte for byte. An existing mismatch stops processing. The crossover records each generated workload CSV hash in `results/task4_crossover_validation.csv` and the verified source CSV hash in `results/task4_crossover_environment.txt`. Generated workload CSVs are temporary derivatives; the raw archive remains unchanged.

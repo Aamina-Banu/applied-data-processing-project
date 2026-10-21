@@ -368,6 +368,8 @@ The crossover experiment generates:
 results/task4_crossover_timings.csv
 results/task4_crossover_summary.csv
 results/task4_crossover_chart.png
+results/task4_crossover_validation.csv
+results/task4_crossover_environment.txt
 ```
 
 Benchmark timings are hardware- and run-specific and should not be expected to reproduce exactly.
@@ -513,13 +515,13 @@ python notebooks/task4_scaling_comparison.py
 python notebooks/task4_crossover_experiment.py
 ```
 
-The main Task 4 script must run before the crossover experiment because it creates:
+Both Task 4 scripts independently verify the raw ZIP checksum and create or verify:
 
 ```text
 data/processed/task4_spark_input.csv
 ```
 
-If this CSV already exists, the script may reuse it, so a clean checkout is preferable when independently verifying the complete workflow.
+An existing CSV must be byte-identical to the archived CSV member; a mismatch stops execution. The crossover builds each workload once in a temporary local CSV, then both engines read it. Preparation and validation are outside timing. Request-key multiplicities, valid-row counts, group keys, counts, exact medians and mean values are checked at every size. Validation and environment evidence are saved as `results/task4_crossover_validation.csv` and `results/task4_crossover_environment.txt`. Temporary workload files are removed after each size.
 
 ## Reproduction Outputs
 
@@ -530,7 +532,7 @@ If this CSV already exists, the script may reuse it, so a clean checkout is pref
 | Task 3 Explore | `results/task3_explore_summary.csv`, agency/problem summaries, tracking-consistency TXT and three PNG figures |
 | Task 3 Model | `results/task3_model_segments.csv`, resolution-band CSVs and Kruskal-Wallis TXT |
 | Task 4 main | scaling timing/summary CSVs, environment TXT and Spark physical-plan TXT |
-| Task 4 crossover | crossover timing/summary CSVs and crossover PNG |
+| Task 4 crossover | timing/summary/validation CSVs, environment TXT and crossover PNG |
 
 Running the reproduction workflow can overwrite generated evidence. Benchmark timings, timestamps, environment details, and some generated file bytes can differ between runs even when the analytical results are equivalent.
 
@@ -645,6 +647,8 @@ Implemented evidence includes:
 The Scrub stage writes a treated Parquet dataset that is consumed by both Explore and Model. Exploratory figures, summaries, segmentation, resolution bands, statistical results, and supporting decision records are present.
 
 ### Task 4 - Scaling Investigation
+
+Updated 21 October 2026: the six-size crossover now uses shared, checksum-recorded workloads with automated input/result validation. All six sizes passed; the current suite has 30 passing tests. The crossover chart and timing CSVs were regenerated using an explicit 4 GB Spark driver heap. Spark first had a lower median at the tested 200,000-row workload (0.865213 s versus pandas 1.070260 s). This is an execution-only, hardware/configuration-specific observation. The separate original main benchmark and its physical plan were not regenerated.
 
 **Implemented with saved evidence**
 
