@@ -9,6 +9,16 @@ class DataInspector(NYC311DataProcessor):
     This class provides descriptive information about the dataset,
     such as its dimensions, column names, data types, and missing
     values. It does not evaluate or treat data quality problems.
+
+    Parameters
+    ----------
+    dataset : DataFrame
+        Input table, copied on construction. Any column schema is accepted.
+
+    Raises
+    ------
+    TypeError
+        If dataset is not a pandas DataFrame.
     """
 
     def __init__(self, dataset: DataFrame):

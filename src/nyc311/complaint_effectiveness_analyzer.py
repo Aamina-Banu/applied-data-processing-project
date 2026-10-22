@@ -11,6 +11,18 @@ class ComplaintEffectivenessAnalyzer(NYC311DataProcessor):
     The analyzer evaluates complaint status information, identifies
     status/date inconsistencies, calculates closure statistics, and
     measures complaint resolution times where valid dates exist.
+
+    Parameters
+    ----------
+    dataset : DataFrame
+        Input table, copied on construction. process_data() requires
+        Status, Created Date and Closed Date; column validation occurs
+        when processing is requested, not during construction.
+
+    Raises
+    ------
+    TypeError
+        If dataset is not a pandas DataFrame.
     """
 
     def __init__(self, dataset: DataFrame):

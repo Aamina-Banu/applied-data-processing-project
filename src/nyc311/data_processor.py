@@ -9,6 +9,19 @@ class NYC311DataProcessor(ABC):
     The class provides shared dataset storage and controlled dataset
     access for NYC 311 data processors. Subclasses must implement
     their own version of process_data().
+
+    Parameters
+    ----------
+    dataset : DataFrame
+        Input table, copied on construction. No specific columns are
+        required by this base class. Nested Python objects inside cells
+        are not recursively copied.
+
+    Raises
+    ------
+    TypeError
+        If dataset is not a pandas DataFrame. Abstract classes cannot
+        be instantiated until all abstract methods are implemented.
     """
 
     def __init__(self, dataset: DataFrame):

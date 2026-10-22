@@ -11,12 +11,37 @@ from .data_processor import NYC311DataProcessor
 
 
 class NYC311DataQualityError(Exception):
-    """Represents an error during NYC 311 data quality processing."""
+    """Report a failed post-treatment integrity check.
+
+    Construction and arguments follow the inherited Exception contract.
+    Treatment methods raise this exception with a descriptive message
+    when row preservation, required columns or targeted corrections fail.
+    This class declares no constructor of its own.
+    """
     pass
 
 
 class DataQualityManager(NYC311DataProcessor):
-    """Manages identified data quality issues in NYC 311 data."""
+    """Report and explicitly treat selected NYC 311 data quality issues.
+
+    Parameters
+    ----------
+    dataset : DataFrame
+        Input table, copied on construction. process_data() requires BBL,
+        Incident Zip, Created Date and Closed Date. Individual treatments
+        validate their own input table and required columns when called.
+
+    Raises
+    ------
+    TypeError
+        If dataset is not a pandas DataFrame.
+
+    Notes
+    -----
+    Treatments return new DataFrames without replacing stored data.
+    The change log records attempts reaching each treatment's logging
+    block; failures during initial argument validation are not logged.
+    """
 
     def __init__(self, dataset: DataFrame):
         """
